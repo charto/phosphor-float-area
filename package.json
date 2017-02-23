@@ -1,0 +1,33 @@
+{
+  "name": "phosphor-float-area",
+  "version": "0.0.1",
+  "description": "Floating dialog container with DockPanel drag support for PhosphorJS",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "scripts": {
+    "tsc": "tsc",
+    "prepublish": "tsc -p src"
+  },
+  "author": "Juha Järvi",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/charto/phosphor-float-area.git"
+  },
+  "bugs": {
+    "url": "https://github.com/charto/phosphor-float-area/issues"
+  },
+  "homepage": "https://github.com/charto/phosphor-float-area#readme",
+  "keywords": [
+    "phosphorjs",
+    "mdi",
+    "window",
+    "dialog"
+  ],
+  "peerDependencies": {
+    "phosphor": "^1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^2.2.1"
+  }
+}

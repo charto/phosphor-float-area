@@ -1,0 +1,20 @@
+{
+	"compilerOptions": {
+		"baseUrl": ".",
+		"declaration": true,
+		"experimentalDecorators": true,
+		"lib": ["dom", "es5", "es2015.promise"],
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"noImplicitAny": true,
+		"noImplicitThis": true,
+		"outDir": "../dist",
+		"removeComments": false,
+		"sourceMap": true,
+		"strictNullChecks": true,
+		"target": "es5"
+	},
+	"files": [
+		"index.ts"
+	]
+}
