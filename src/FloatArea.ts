@@ -15,6 +15,8 @@ export class FloatArea extends Widget {
 		this.addClass('charto-float-area');
 		this.addClass('charto-content');
 
+		this.layout = new FloatLayout();
+
 		this.dockPanel = options.dockPanel;
 
 		if(options.overlay) {
@@ -151,8 +153,7 @@ export class FloatArea extends Widget {
 					return;
 				}
 
-				console.log(widget);
-				widget.parent = null;
+				(this.layout as FloatLayout).addWidget(widget);
 
 				dragEvent.dropAction = dragEvent.proposedAction;
 
