@@ -17,8 +17,6 @@ export class FloatArea extends Widget {
 
 		this.layout = new FloatLayout();
 
-		this.dockPanel = options.dockPanel;
-
 		if(options.overlay) {
 			this.overlay = options.overlay;
 			this.overlayParent = this.overlay.node.parentNode as HTMLElement;
@@ -64,27 +62,35 @@ export class FloatArea extends Widget {
 
 		switch(event.type) {
 			case 'p-dragenter':
-				if(dragEvent.mimeData.hasData('application/vnd.phosphor.widget-factory')) {
-					if(this.ownOverlay && this.node.parentNode) {
-						// Dispatch a new event with out of bounds coordinates
-						// to get parent DockPanel hide any visible overlay.
+				if(!dragEvent.mimeData.hasData('application/vnd.phosphor.widget-factory')) break;
 
-						const outOfBoundsEvent = document.createEvent('MouseEvent');
+				if(this.ownOverlay && this.node.parentNode) {
+					// Dispatch a new event with out of bounds coordinates
+					// to get parent DockPanel hide any visible overlay.
 
-						outOfBoundsEvent.initMouseEvent(
-							'p-dragover', true, true, window, 0,
-							dragEvent.screenX, dragEvent.screenY,
-							-1, -1,
-							dragEvent.ctrlKey, dragEvent.altKey,
-							dragEvent.shiftKey, dragEvent.metaKey,
-							dragEvent.button, dragEvent.relatedTarget
-						);
+					const outOfBoundsEvent = document.createEvent('MouseEvent');
 
-						this.node.parentNode.dispatchEvent(outOfBoundsEvent);
-						return;
-					} else if(!this.ownOverlay) {
-						this.overlay.node.classList.add('charto-mod-overlay-jump');
-					}
+					outOfBoundsEvent.initMouseEvent(
+						'p-dragover', true, true, window, 0,
+						dragEvent.screenX, dragEvent.screenY,
+						-1, -1,
+						dragEvent.ctrlKey, dragEvent.altKey,
+						dragEvent.shiftKey, dragEvent.metaKey,
+						dragEvent.button, dragEvent.relatedTarget
+					);
+
+					this.node.parentNode.dispatchEvent(outOfBoundsEvent);
+					return;
+				} else if(!this.ownOverlay) {
+					this.overlay.node.classList.add('charto-mod-overlay-jump');
+				}
+
+				const dragImage = document.body.querySelector('.p-mod-drag-image') as HTMLElement;
+				if(dragImage) {
+					const imageRect = dragImage.getBoundingClientRect();
+					this.dragImageOffsetX = dragImage.offsetLeft - imageRect.left;
+					this.dragImageOffsetY = dragImage.offsetTop - imageRect.top;
+					this.dragImageHeight = dragImage.offsetHeight;
 				}
 				break;
 			case 'p-dragleave':
@@ -103,22 +109,11 @@ export class FloatArea extends Widget {
 
 				const rect = this.node.getBoundingClientRect();
 				const parentRect = this.overlayParent.getBoundingClientRect();
-				const dragImage: HTMLElement = this.dockPanel && (this.dockPanel as any)._drag && (this.dockPanel as any)._drag.dragImage;
 
-				let top = dragEvent.clientY - parentRect.top + dragImage.offsetHeight;
-				let left = dragEvent.clientX - parentRect.left;
+				const left = dragEvent.clientX - parentRect.left - this.dragImageOffsetX;
+				const top = dragEvent.clientY - parentRect.top - this.dragImageOffsetY + this.dragImageHeight;
 				let width: number;
 				let height: number;
-
-				if(dragImage) {
-					// Get drag image offset from mouse position as configured in CSS.
-					const transform = window.getComputedStyle(dragImage).transform;
-					if(transform) {
-						const matrix = transform.split(/[(),]/);
-						top += parseFloat(matrix[6] || '0');
-						left += parseFloat(matrix[5] || '0');
-					}
-				}
 
 				const goldenRatio = 0.618;
 
@@ -165,8 +160,6 @@ export class FloatArea extends Widget {
 		(this.layout as FloatLayout).addWidget(widget, options);
 	}
 
-	/** Containing DockPanel if passed as an option to the constructor. */
-	dockPanel?: DockPanel;
 	/** Transparent overlay indicating position of dragged widget if dropped. */
 	overlay: DockPanel.IOverlay;
 	/** Parent DOM node of the overlay. */
@@ -177,11 +170,14 @@ export class FloatArea extends Widget {
 	edgeWidth: number;
 	/** Vertical padding of overlayParent in pixels. */
 	edgeHeight: number;
+
+	dragImageOffsetX = 0;
+	dragImageOffsetY = 0;
+	dragImageHeight = 0;
 }
 
 export namespace FloatArea {
 	export interface Options {
-		dockPanel?: DockPanel;
 		overlay?: DockPanel.IOverlay;
 	}
 
