@@ -183,4 +183,47 @@ export namespace FloatArea {
 		dockPanel?: DockPanel;
 		overlay?: DockPanel.IOverlay;
 	}
+
+	interface EventWidget extends Widget {
+		handleEvent(event: Event): void;
+	}
+
+	export interface WidgetConstructor {
+		new(...args: any[]): Widget;
+	}
+
+	/** Apply a mixin to make a widget class accept or reject drag events
+	  * and pass them to parents. */
+
+	export function setDropTarget<Constructor extends WidgetConstructor>(Widget: Constructor, active = true) {
+		const proto = Widget.prototype;
+		const onBeforeAttach = proto.onBeforeAttach;
+		const onAfterDetach = proto.onAfterDetach;
+		const handleEvent = proto.handleEvent;
+
+		proto.onBeforeAttach = function(this: EventWidget, msg: Message) {
+			this.node.addEventListener('p-dragenter', this);
+			if(onBeforeAttach) onBeforeAttach.apply(this, arguments);
+		};
+
+		proto.onAfterDetach = function(this: EventWidget, msg: Message) {
+			this.node.removeEventListener('p-dragenter', this);
+			if(onAfterDetach) onAfterDetach.apply(this, arguments);
+		};
+
+		proto.handleEvent = function(this: EventWidget, event: Event) {
+			if(
+				event.type == 'p-dragenter' &&
+				(event as IDragEvent).mimeData.hasData('application/vnd.phosphor.widget-factory')
+			) {
+				if(active) {
+					// Stop enter event propagation to receive other drag events.
+					event.preventDefault();
+					event.stopPropagation();
+				}
+			} else if(handleEvent) {
+				handleEvent.apply(this, arguments);
+			}
+		}
+	}
 }
