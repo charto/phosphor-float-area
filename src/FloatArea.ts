@@ -160,6 +160,11 @@ export class FloatArea extends Widget {
 	protected handleDrop(event: IDragEvent) {
 		this.overlay.hide(0);
 
+		if(!this.ownOverlay) {
+			// Enable animated transitions in overlay movement.
+			this.overlay.node.classList.remove('charto-mod-noTransition');
+		}
+
 		const factory = event.mimeData.getData('application/vnd.phosphor.widget-factory');
 		const widget = (typeof(factory) == 'function' && factory());
 
