@@ -42,7 +42,7 @@ export class FloatArea extends Widget {
 		return(node);
 	}
 
-	protected onBeforeAttach(msg: Message): void {
+	protected onBeforeAttach(msg: Message) {
 		this.node.addEventListener('p-dragenter', this);
 		this.node.addEventListener('p-dragleave', this);
 		this.node.addEventListener('p-dragover', this);
@@ -50,120 +50,151 @@ export class FloatArea extends Widget {
 //		this.node.addEventListener('mousedown', this);
 	}
 
-	protected onAfterDetach(msg: Message): void {
+	protected onAfterDetach(msg: Message) {
 		this.node.removeEventListener('p-dragenter', this);
 		this.node.removeEventListener('p-dragleave', this);
 		this.node.removeEventListener('p-dragover', this);
 		this.node.removeEventListener('p-drop', this);
 	}
 
-	handleEvent(event: Event): void {
-		if(event.type != 'p-dragleave') {
-			// Eat all events except dragleave
-			// (so overlay's parent can still see if it's time to hide it).
-			event.preventDefault();
-			event.stopPropagation();
-		}
-
-		const dragEvent = event as IDragEvent;
-
+	handleEvent(event: Event) {
 		switch(event.type) {
 			case 'p-dragenter':
-				if(!dragEvent.mimeData.hasData('application/vnd.phosphor.widget-factory')) break;
-
-				if(this.ownOverlay && this.node.parentNode) {
-					// Dispatch a new event with out of bounds coordinates
-					// to get parent DockPanel hide any visible overlay.
-
-					const outOfBoundsEvent = document.createEvent('MouseEvent');
-
-					outOfBoundsEvent.initMouseEvent(
-						'p-dragover', true, true, window, 0,
-						dragEvent.screenX, dragEvent.screenY,
-						-1, -1,
-						dragEvent.ctrlKey, dragEvent.altKey,
-						dragEvent.shiftKey, dragEvent.metaKey,
-						dragEvent.button, dragEvent.relatedTarget
-					);
-
-					this.node.parentNode.dispatchEvent(outOfBoundsEvent);
-					return;
-				} else if(!this.ownOverlay) {
-					// Probably re-using a DockPanel's overlay,
-					// so disable animated transitions in its movement.
-					this.overlay.node.classList.add('charto-mod-overlay-jump');
+				// Only handle drag events containing widgets.
+				if((event as IDragEvent).mimeData.hasData('application/vnd.phosphor.widget-factory')) {
+					this.handleDragEnter(event as IDragEvent);
+					break;
 				}
-
-				const dragImage = document.body.querySelector('.p-mod-drag-image') as HTMLElement;
-				if(dragImage) {
-					const imageRect = dragImage.getBoundingClientRect();
-					this.dragImageOffsetX = dragImage.offsetLeft - imageRect.left;
-					this.dragImageOffsetY = dragImage.offsetTop - imageRect.top;
-					this.dragImageHeight = dragImage.offsetHeight;
-				}
-				break;
+				return;
 			case 'p-dragleave':
-				const related = dragEvent.relatedTarget as HTMLElement;
+				this.handleDragLeave(event as IDragEvent);
 
-				if(!this.ownOverlay && (!related || !this.node.contains(related))) {
-					// Mouse left the bounds of this widget.
-					// Enable animated transitions in overlay movement.
-					this.overlay.node.classList.remove('charto-mod-overlay-jump');
-				}
-				break;
+				// Allow dragleave events to bubble up so overlay's parent
+				// can see if it's time to hide it.
+				return;
 			case 'p-dragover':
-				dragEvent.dropAction = dragEvent.proposedAction;
-
-				const rect = this.node.getBoundingClientRect();
-				const parentRect = this.overlayParent.getBoundingClientRect();
-
-				const left = dragEvent.clientX - parentRect.left - this.dragImageOffsetX;
-				const top = dragEvent.clientY - parentRect.top - this.dragImageOffsetY + this.dragImageHeight;
-				let width: number;
-				let height: number;
-
-				const goldenRatio = 0.618;
-
-				// Compute initial floating panel size so its longer dimension
-				// is half that of the area it's floating over.
-				if(rect.width < rect.height) {
-					width = rect.width / 2;
-					height = width * goldenRatio;
-				} else {
-					height = rect.height / 2;
-					width = height / goldenRatio;
-				}
-
-				const right = parentRect.width - width - left - this.edgeWidth;
-				const bottom = parentRect.height - height - top - this.edgeHeight;
-
-				this.overlay.show({
-					mouseX: dragEvent.clientX,
-					mouseY: dragEvent.clientY,
-					parentRect: rect,
-					top, left, right, bottom, width, height
-				});
+				this.handleDragOver(event as IDragEvent);
 				break;
 			case 'p-drop':
-				this.overlay.hide(0);
-
-				const factory = dragEvent.mimeData.getData('application/vnd.phosphor.widget-factory');
-				const widget = (typeof(factory) == 'function' && factory());
-
-				// Ensure the dragged widget is known.
-				if(!(widget instanceof Widget) || widget == this) {
-					dragEvent.dropAction = 'none';
-					return;
-				}
-
-				// Take ownership of the dragged widget.
-				this.addWidget(widget);
-
-				// Accept the drag.
-				dragEvent.dropAction = dragEvent.proposedAction;
-
+				this.handleDrop(event as IDragEvent);
 				break;
 		}
+
+		// Note: p-dragenter must be eaten to receive other drag events.
+		event.preventDefault();
+		event.stopPropagation();
+	}
+
+	/** Dispatch a new p-dragleave event outside any widgets. */
+	protected static sendLeaveEvent(event: IDragEvent, node: HTMLElement) {
+		const leaveEvent = document.createEvent('MouseEvent');
+		const oob = -1000;
+
+		// Claim the mouse entered the document body at faraway coordinates,
+		// so any event receivers will consider it outside their bounds.
+
+		leaveEvent.initMouseEvent(
+			'p-dragleave', true, true, window, 0,
+			oob, oob,
+			oob, oob,
+			event.ctrlKey, event.altKey,
+			event.shiftKey, event.metaKey,
+			event.button, document.body
+		);
+
+		node.dispatchEvent(leaveEvent);
+	}
+
+	protected handleDragEnter(event: IDragEvent) {
+		if(this.ownOverlay) {
+			if(this.node.parentNode) {
+				// In case a parent DockPanel is also showing an overlay,
+				// send a p-dragleave event to trigger hiding it.
+				FloatArea.sendLeaveEvent(event, this.node.parentNode as HTMLElement);
+			}
+		} else {
+			// Probably re-using a DockPanel's overlay,
+			// so disable animated transitions in its movement.
+			this.overlay.node.classList.add('charto-mod-overlay-jump');
+		}
+
+		// Equivalent to (dockPanel as any)._drag.dragImage if we had access.
+		const dragImage = document.body.querySelector('.p-mod-drag-image') as HTMLElement;
+
+		if(dragImage) {
+			const imageRect = dragImage.getBoundingClientRect();
+			this.dragImageOffsetX = dragImage.offsetLeft - imageRect.left;
+			this.dragImageOffsetY = dragImage.offsetTop - imageRect.top;
+			this.dragImageHeight = dragImage.offsetHeight;
+		}
+	}
+
+	protected handleDragLeave(event: IDragEvent) {
+		const related = event.relatedTarget as HTMLElement;
+
+		if(!related || !this.node.contains(related)) {
+			// Mouse left the bounds of this widget.
+			if(this.ownOverlay) {
+				this.overlay.hide(0);
+			} else {
+				// Enable animated transitions in overlay movement.
+				this.overlay.node.classList.remove('charto-mod-overlay-jump');
+			}
+		}
+	}
+
+	protected handleDragOver(event: IDragEvent) {
+		const rect = this.node.getBoundingClientRect();
+		const parentRect = this.overlayParent.getBoundingClientRect();
+
+		const left = event.clientX - parentRect.left - this.dragImageOffsetX;
+		const top = event.clientY - parentRect.top - this.dragImageOffsetY + this.dragImageHeight;
+		let width: number;
+		let height: number;
+
+		const goldenRatio = 0.618;
+
+		// Compute initial floating panel size so its longer dimension
+		// is half that of the area it's floating over.
+		if(rect.width < rect.height) {
+			width = rect.width / 2;
+			height = width * goldenRatio;
+		} else {
+			height = rect.height / 2;
+			width = height / goldenRatio;
+		}
+
+		const right = parentRect.width - width - left - this.edgeWidth;
+		const bottom = parentRect.height - height - top - this.edgeHeight;
+
+		this.overlay.show({
+			mouseX: event.clientX,
+			mouseY: event.clientY,
+			parentRect: rect,
+			top, left, right, bottom, width, height
+		});
+
+		// Tentatively accept the drag.
+		event.dropAction = event.proposedAction;
+	}
+
+	protected handleDrop(event: IDragEvent) {
+		this.overlay.hide(0);
+
+		const factory = event.mimeData.getData('application/vnd.phosphor.widget-factory');
+		const widget = (typeof(factory) == 'function' && factory());
+
+		// Ensure the dragged widget is known.
+		if(!(widget instanceof Widget) || widget == this) {
+			event.dropAction = 'none';
+			return;
+		}
+
+		// Take ownership of the dragged widget.
+		this.addWidget(widget);
+
+		// Accept the drag.
+		event.dropAction = event.proposedAction;
 	}
 
 	addWidget(widget: Widget, options: FloatLayout.AddOptions = {}): void {
