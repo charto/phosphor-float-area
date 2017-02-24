@@ -195,30 +195,32 @@ export namespace FloatArea {
 		handleEvent(event: Event): void;
 	}
 
-	export interface WidgetConstructor {
-		new(...args: any[]): Widget;
-	}
+	/** Apply a mixin to make a widget or class request drag events or allow
+	  * children to request them. Requested events only get passed to parents.
+	  * @param widgetType Where to add mixin.
+	  * Can be a widget instance or class prototype.
+	  * @param active Flag whether events will be requested and hidden from children. */
 
-	/** Apply a mixin to make a widget class accept or reject drag events
-	  * and pass them to parents. */
+	export function setDropTarget<WidgetType extends Widget>(
+		widgetType: WidgetType | { new(...args: any[]): WidgetType },
+		active = true
+	) {
+		const target = widgetType instanceof Widget ? widgetType : widgetType.prototype;
+		const onBeforeAttach = target.onBeforeAttach;
+		const onAfterDetach = target.onAfterDetach;
+		const handleEvent = target.handleEvent;
 
-	export function setDropTarget<Constructor extends WidgetConstructor>(Widget: Constructor, active = true) {
-		const proto = Widget.prototype;
-		const onBeforeAttach = proto.onBeforeAttach;
-		const onAfterDetach = proto.onAfterDetach;
-		const handleEvent = proto.handleEvent;
-
-		proto.onBeforeAttach = function(this: EventWidget, msg: Message) {
+		target.onBeforeAttach = function(this: EventWidget, msg: Message) {
 			this.node.addEventListener('p-dragenter', this);
 			if(onBeforeAttach) onBeforeAttach.apply(this, arguments);
 		};
 
-		proto.onAfterDetach = function(this: EventWidget, msg: Message) {
+		target.onAfterDetach = function(this: EventWidget, msg: Message) {
 			this.node.removeEventListener('p-dragenter', this);
 			if(onAfterDetach) onAfterDetach.apply(this, arguments);
 		};
 
-		proto.handleEvent = function(this: EventWidget, event: Event) {
+		target.handleEvent = function(this: EventWidget, event: Event) {
 			if(
 				event.type == 'p-dragenter' &&
 				(event as IDragEvent).mimeData.hasData('application/vnd.phosphor.widget-factory')
