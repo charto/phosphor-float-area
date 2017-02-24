@@ -85,32 +85,12 @@ export class FloatArea extends Widget {
 		event.stopPropagation();
 	}
 
-	/** Dispatch a new p-dragleave event outside any widgets. */
-	protected static sendLeaveEvent(event: IDragEvent, node: HTMLElement) {
-		const leaveEvent = document.createEvent('MouseEvent');
-		const oob = -1000;
-
-		// Claim the mouse entered the document body at faraway coordinates,
-		// so any event receivers will consider it outside their bounds.
-
-		leaveEvent.initMouseEvent(
-			'p-dragleave', true, true, window, 0,
-			oob, oob,
-			oob, oob,
-			event.ctrlKey, event.altKey,
-			event.shiftKey, event.metaKey,
-			event.button, document.body
-		);
-
-		node.dispatchEvent(leaveEvent);
-	}
-
 	protected handleDragEnter(event: IDragEvent) {
 		if(this.ownOverlay) {
 			if(this.node.parentNode) {
 				// In case a parent DockPanel is also showing an overlay,
 				// send a p-dragleave event to trigger hiding it.
-				FloatArea.sendLeaveEvent(event, this.node.parentNode as HTMLElement);
+				sendLeaveEvent(event, this.node.parentNode as HTMLElement);
 			}
 		} else {
 			// Probably re-using a DockPanel's overlay,
@@ -217,6 +197,26 @@ export class FloatArea extends Widget {
 	dragImageHeight = 0;
 }
 
+/** Dispatch a new p-dragleave event outside any widgets. */
+function sendLeaveEvent(event: IDragEvent, node: HTMLElement) {
+	const leaveEvent = document.createEvent('MouseEvent');
+	const oob = -1000;
+
+	// Claim the mouse entered the document body at faraway coordinates,
+	// so any event receivers will consider it outside their bounds.
+
+	leaveEvent.initMouseEvent(
+		'p-dragleave', true, true, window, 0,
+		oob, oob,
+		oob, oob,
+		event.ctrlKey, event.altKey,
+		event.shiftKey, event.metaKey,
+		event.button, document.body
+	);
+
+	node.dispatchEvent(leaveEvent);
+}
+
 export namespace FloatArea {
 	export interface Options {
 		overlay?: DockPanel.IOverlay;
@@ -224,6 +224,7 @@ export namespace FloatArea {
 
 	interface EventWidget extends Widget {
 		handleEvent(event: Event): void;
+		leaveEventSent: boolean;
 	}
 
 	/** Apply a mixin to make a widget or class request drag events or allow
@@ -252,18 +253,30 @@ export namespace FloatArea {
 		};
 
 		target.handleEvent = function(this: EventWidget, event: Event) {
-			if(
-				event.type == 'p-dragenter' &&
-				(event as IDragEvent).mimeData.hasData('application/vnd.phosphor.widget-factory')
-			) {
-				if(active) {
-					// Stop enter event propagation to receive other drag events.
-					event.preventDefault();
-					event.stopPropagation();
-				}
-			} else if(handleEvent) {
-				handleEvent.apply(this, arguments);
+			switch(event.type) {
+				case 'p-dragenter':
+					if((event as IDragEvent).mimeData.hasData('application/vnd.phosphor.widget-factory')) {
+						if(active) {
+							// Stop enter event propagation to receive other drag events.
+							event.preventDefault();
+							event.stopPropagation();
+						} else return;
+					}
+					break;
+				case 'p-dragover':
+					if(!active && !this.leaveEventSent && this.node.parentNode) {
+						// In case a parent DockPanel is also showing an overlay,
+						// send a p-dragleave event to trigger hiding it.
+						sendLeaveEvent(event as IDragEvent, this.node.parentNode as HTMLElement);
+						this.leaveEventSent = true;
+					}
+					break;
+				case 'p-dragleave':
+					this.leaveEventSent = false;
+					break;
 			}
+
+			if(handleEvent) handleEvent.apply(this, arguments);
 		}
 	}
 }
