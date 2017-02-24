@@ -242,16 +242,6 @@ export namespace FloatArea {
 		const onAfterDetach = target.onAfterDetach;
 		const handleEvent = target.handleEvent;
 
-		target.onBeforeAttach = function(this: EventWidget, msg: Message) {
-			this.node.addEventListener('p-dragenter', this);
-			if(onBeforeAttach) onBeforeAttach.apply(this, arguments);
-		};
-
-		target.onAfterDetach = function(this: EventWidget, msg: Message) {
-			this.node.removeEventListener('p-dragenter', this);
-			if(onAfterDetach) onAfterDetach.apply(this, arguments);
-		};
-
 		target.handleEvent = function(this: EventWidget, event: Event) {
 			switch(event.type) {
 				case 'p-dragenter':
@@ -277,6 +267,20 @@ export namespace FloatArea {
 			}
 
 			if(handleEvent) handleEvent.apply(this, arguments);
+		}
+
+		target.onBeforeAttach = function(this: EventWidget, msg: Message) {
+			this.node.addEventListener('p-dragenter', this);
+			if(onBeforeAttach) onBeforeAttach.apply(this, arguments);
+		};
+
+		target.onAfterDetach = function(this: EventWidget, msg: Message) {
+			this.node.removeEventListener('p-dragenter', this);
+			if(onAfterDetach) onAfterDetach.apply(this, arguments);
+		};
+
+		if(target instanceof Widget && target.isAttached) {
+			target.node.addEventListener('p-dragenter', target as EventWidget);
 		}
 	}
 }
