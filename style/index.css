@@ -1,0 +1,9 @@
+.charto-mod-noTransition {
+	transition: none !important;
+}
+
+/* Leave space for a drag handle in dialog's tab bar  */
+
+.charto-Dialog > .p-DockPanel > .p-DockPanel-tabBar > .p-TabBar-content {
+	max-width: 50%;
+}

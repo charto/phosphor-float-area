@@ -12,10 +12,7 @@ export class FloatArea extends Widget {
 	constructor(options: FloatArea.Options = {}) {
 		super({ node: FloatArea.createNode() });
 
-		this.addClass('charto-float-area');
-		this.addClass('charto-content');
-
-		this.layout = new FloatLayout();
+		this.addClass('charto-FloatArea');
 
 		if(options.overlay) {
 			// Re-use an existing transparent overlay.
@@ -26,7 +23,7 @@ export class FloatArea extends Widget {
 		} else {
 			// Create a new transparent overlay inside this widget.
 			this.overlay = new DockPanel.Overlay();
-			this.overlay.node.classList.add('charto-mod-overlay-jump');
+			this.overlay.node.classList.add('charto-mod-noTransition');
 			this.node.appendChild(this.overlay.node);
 			this.overlayParent = this.node;
 			this.ownOverlay = true;
@@ -35,6 +32,8 @@ export class FloatArea extends Widget {
 		const parentBox = ElementExt.boxSizing(this.overlayParent);
 		this.edgeWidth = parentBox.borderLeft + parentBox.borderRight;
 		this.edgeHeight = parentBox.borderTop + parentBox.borderBottom;
+
+		this.layout = new FloatLayout();
 	}
 
 	static createNode(): HTMLElement {
@@ -95,7 +94,7 @@ export class FloatArea extends Widget {
 		} else {
 			// Probably re-using a DockPanel's overlay,
 			// so disable animated transitions in its movement.
-			this.overlay.node.classList.add('charto-mod-overlay-jump');
+			this.overlay.node.classList.add('charto-mod-noTransition');
 		}
 
 		// Equivalent to (dockPanel as any)._drag.dragImage if we had access.
@@ -118,7 +117,7 @@ export class FloatArea extends Widget {
 				this.overlay.hide(0);
 			} else {
 				// Enable animated transitions in overlay movement.
-				this.overlay.node.classList.remove('charto-mod-overlay-jump');
+				this.overlay.node.classList.remove('charto-mod-noTransition');
 			}
 		}
 	}
