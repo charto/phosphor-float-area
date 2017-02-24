@@ -18,10 +18,13 @@ export class FloatArea extends Widget {
 		this.layout = new FloatLayout();
 
 		if(options.overlay) {
+			// Re-use an existing transparent overlay.
+			// Pass it to a parent DockPanel first.
 			this.overlay = options.overlay;
 			this.overlayParent = this.overlay.node.parentNode as HTMLElement;
 			this.ownOverlay = false;
 		} else {
+			// Create a new transparent overlay inside this widget.
 			this.overlay = new DockPanel.Overlay();
 			this.overlay.node.classList.add('charto-mod-overlay-jump');
 			this.node.appendChild(this.overlay.node);
@@ -55,8 +58,12 @@ export class FloatArea extends Widget {
 	}
 
 	handleEvent(event: Event): void {
-		event.preventDefault();
-		event.stopPropagation();
+		if(event.type != 'p-dragleave') {
+			// Eat all events except dragleave
+			// (so overlay's parent can still see if it's time to hide it).
+			event.preventDefault();
+			event.stopPropagation();
+		}
 
 		const dragEvent = event as IDragEvent;
 
@@ -82,6 +89,8 @@ export class FloatArea extends Widget {
 					this.node.parentNode.dispatchEvent(outOfBoundsEvent);
 					return;
 				} else if(!this.ownOverlay) {
+					// Probably re-using a DockPanel's overlay,
+					// so disable animated transitions in its movement.
 					this.overlay.node.classList.add('charto-mod-overlay-jump');
 				}
 
@@ -96,11 +105,9 @@ export class FloatArea extends Widget {
 			case 'p-dragleave':
 				const related = dragEvent.relatedTarget as HTMLElement;
 
-				if(!related || !this.overlayParent.contains(related)) {
-					this.overlay.hide(0);
-				}
-
 				if(!this.ownOverlay && (!related || !this.node.contains(related))) {
+					// Mouse left the bounds of this widget.
+					// Enable animated transitions in overlay movement.
 					this.overlay.node.classList.remove('charto-mod-overlay-jump');
 				}
 				break;
@@ -141,15 +148,18 @@ export class FloatArea extends Widget {
 				this.overlay.hide(0);
 
 				const factory = dragEvent.mimeData.getData('application/vnd.phosphor.widget-factory');
-				const widget = typeof(factory) == 'function' && factory();
+				const widget = (typeof(factory) == 'function' && factory());
 
+				// Ensure the dragged widget is known.
 				if(!(widget instanceof Widget) || widget == this) {
 					dragEvent.dropAction = 'none';
 					return;
 				}
 
-				(this.layout as FloatLayout).addWidget(widget);
+				// Take ownership of the dragged widget.
+				this.addWidget(widget);
 
+				// Accept the drag.
 				dragEvent.dropAction = dragEvent.proposedAction;
 
 				break;
