@@ -168,8 +168,8 @@ export class FloatArea extends Widget {
 		const factory = event.mimeData.getData('application/vnd.phosphor.widget-factory');
 		const widget = (typeof(factory) == 'function' && factory());
 
-		// Ensure the dragged widget is known.
-		if(!(widget instanceof Widget) || widget == this) {
+		// Ensure the dragged widget is known and is not a parent of this widget.
+		if(!(widget instanceof Widget) || widget.contains(this)) {
 			event.dropAction = 'none';
 			return;
 		}
