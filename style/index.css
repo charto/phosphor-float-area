@@ -2,8 +2,27 @@
 	transition: none !important;
 }
 
-/* Leave space for a drag handle in dialog's tab bar  */
-
 .charto-Dialog > .p-DockPanel > .p-DockPanel-tabBar > .p-TabBar-content {
-	max-width: 50%;
+	/* Leave space for a drag handle in dialog's tab bar. */
+	padding-right: 50%;
+	/* Change mouse pointer over drag handle. */
+	cursor: move;
+}
+
+.charto-Dialog > .p-DockPanel > .p-DockPanel-tabBar > .p-TabBar-content > .p-TabBar-tab {
+	/* Reset mouse pointer over tabs. */
+	cursor: default;
+}
+
+/* Draw a drag handle on the right side of the tab bar. */
+
+.charto-Dialog > .p-DockPanel > .p-DockPanel-tabBar > .p-TabBar-content:after {
+	content: '';
+	position: absolute;
+	width: 100%;
+	border-top: 1px solid #c0c0c0;
+	margin: 6px 8px 0 8px;
+	box-shadow:
+		0  4px 0 0 #c0c0c0,
+		0  8px 0 0 #c0c0c0;
 }

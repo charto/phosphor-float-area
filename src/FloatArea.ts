@@ -60,7 +60,6 @@ export class FloatArea extends Widget {
 		this.node.addEventListener('p-dragleave', this);
 		this.node.addEventListener('p-dragover', this);
 		this.node.addEventListener('p-drop', this);
-//		this.node.addEventListener('mousedown', this);
 	}
 
 	protected onAfterDetach(msg: Message) {

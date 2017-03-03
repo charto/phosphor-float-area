@@ -1,77 +1,64 @@
 // This file is part of phosphor-float-area, copyright (C) 2017 BusFaster Ltd.
 // Released under the MIT license, see LICENSE.
 
-import { Message, MessageLoop } from '@phosphor/messaging';
-import { IIterator, empty, iter } from '@phosphor/algorithm';
-import { Widget, Layout } from '@phosphor/widgets';
+import { Message, MessageLoop, IMessageHandler } from '@phosphor/messaging';
+import { Widget, DockPanel, TabBar } from '@phosphor/widgets';
 
-export class FloatLayout extends Layout {
+import { Dialog } from './Dialog';
+import { SimpleLayout } from './SimpleLayout';
+
+export class FloatLayout extends SimpleLayout {
 	constructor(options: FloatLayout.Options = {}) {
 		super();
 	}
 
-	iter(): IIterator<Widget> {
-		return iter(this.widgetList);
-	}
-
 	addWidget(widget: Widget, options: FloatLayout.AddOptions = {}) {
-		widget.parent = this.parent;
+		const dialog = new Dialog();
+		const dockPanel = new DockPanel();
 
-		this.widgetList.push(widget);
+		dockPanel.addWidget(widget);
+		dialog.addWidget(dockPanel);
 
-		this.attachWidget(widget);
+		dockPanel.parent = dialog;
+		dialog.parent = this.parent;
 
-		// Send fit-request to parent (Layout class will catch it).
-		this.parent!.fit();
+		Widget.setGeometry(
+			dialog,
+			options.left || 0,
+			options.top || 0,
+			options.width || 320,
+			options.height || 240
+		);
+
+		MessageLoop.installMessageHook(dockPanel, (handler: IMessageHandler, msg: Message) => {
+			if(msg.type == 'child-removed' && (msg as Widget.ChildMessage).child instanceof TabBar) {
+				// Allow the panel to process the message first.
+				setTimeout(() => {
+					if(dockPanel.isEmpty) dialog.close();
+					// TODO: dispose?
+				}, 1);
+			}
+			// Let the message through.
+			return(true);
+		});
+
+		super.addWidget(dialog);
 	}
 
 	removeWidget(widget: Widget) {
-		if(this.parent) {
-			// this.detachWidget(widget);
-			this.parent.fit();
-		}
+		super.removeWidget(widget);
 	}
 
 	protected onFitRequest(msg: Message): void {
-		if(!this.parent!.isAttached) return;
-
 		// TODO: Calculate required size to fit children.
 		// See DockLayout._fit
 
-		MessageLoop.sendMessage(this.parent!, Widget.Msg.UpdateRequest);
-	}
-
-	protected onUpdateRequest(msg: Message): void {
-		if(this.parent!.isVisible) this.update();
-	}
-
-	update() {
-		for(let widget of this.widgetList) {
-			this.updateWidget(widget);
-		}
-	}
-
-	protected attachWidget(widget: Widget): void {
-		if (this.parent!.node == widget.node.parentNode) return;
-
-		Widget.prepareGeometry(widget);
-
-		if (this.parent!.isAttached) {
-			MessageLoop.sendMessage(widget, Widget.Msg.BeforeAttach);
-		}
-
-		this.parent!.node.appendChild(widget.node);
-
-		if (this.parent!.isAttached) {
-			MessageLoop.sendMessage(widget, Widget.Msg.AfterAttach);
-		}
+		super.onFitRequest(msg);
 	}
 
 	updateWidget(widget: Widget) {
-		Widget.setGeometry(widget, 0, 0, 200, 200);
+		// Widget.setGeometry(widget, 0, 0, 200, 200);
 	}
-
-	private widgetList: Widget[] = [];
 }
 
 export namespace FloatLayout {
@@ -79,5 +66,9 @@ export namespace FloatLayout {
 	}
 
 	export interface AddOptions {
+		left?: number;
+		top?: number;
+		width?: number;
+		height?: number;
 	}
 }
