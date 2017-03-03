@@ -2,6 +2,7 @@
 // Released under the MIT license, see LICENSE.
 
 import { Message, MessageLoop, IMessageHandler } from '@phosphor/messaging';
+import { ElementExt } from '@phosphor/domutils';
 import { Widget, DockPanel, TabBar } from '@phosphor/widgets';
 
 import { Dialog } from './Dialog';
@@ -22,14 +23,6 @@ export class FloatLayout extends SimpleLayout {
 		dockPanel.parent = dialog;
 		dialog.parent = this.parent;
 
-		Widget.setGeometry(
-			dialog,
-			options.left || 0,
-			options.top || 0,
-			options.width || 320,
-			options.height || 240
-		);
-
 		MessageLoop.installMessageHook(dockPanel, (handler: IMessageHandler, msg: Message) => {
 			if(msg.type == 'child-removed' && (msg as Widget.ChildMessage).child instanceof TabBar) {
 				// Allow the panel to process the message first.
@@ -43,6 +36,17 @@ export class FloatLayout extends SimpleLayout {
 		});
 
 		super.addWidget(dialog);
+
+		const box = ElementExt.boxSizing(dialog.node);
+		const tabBar = (dockPanel.node.querySelector('.p-TabBar') || {}) as HTMLElement;
+
+		Widget.setGeometry(
+			dialog,
+			(options.left || 0) - box.paddingLeft - box.borderLeft,
+			(options.top || 0) - box.paddingTop - box.borderTop,
+			(options.width || 320) + box.horizontalSum,
+			(options.height || 240) + box.verticalSum + (tabBar.offsetHeight || 0)
+		);
 	}
 
 	removeWidget(widget: Widget) {

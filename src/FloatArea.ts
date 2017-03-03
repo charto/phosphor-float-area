@@ -16,6 +16,9 @@ interface DragData {
 	width: number;
 	height: number;
 
+	imageOffsetX: number;
+	imageOffsetY: number;
+
 	offsetLeft: number;
 	offsetTop: number;
 	offsetRight: number;
@@ -135,6 +138,9 @@ export class FloatArea extends Widget {
 			width,
 			height,
 
+			imageOffsetX,
+			imageOffsetY,
+
 			offsetLeft: parentRect.left + imageOffsetX,
 			offsetTop: parentRect.top + imageOffsetY - imageHeight,
 			offsetRight: parentRect.width - width - this.edgeWidth,
@@ -212,11 +218,15 @@ export class FloatArea extends Widget {
 		// Deparent the widget and wait for layout changes to settle.
 		widget.parent = null;
 
+		// Maybe move to the update handler and remove timer?
 		setTimeout(() => {
+			// Get updated float area bounds.
+			const rect = this.node.getBoundingClientRect();
+
 			// Take ownership of the dragged widget.
 			this.addWidget(widget, {
-				left: event.clientX - drag.offsetLeft,
-				top: event.clientY - drag.offsetTop,
+				left: event.clientX - rect.left - drag.imageOffsetX,
+				top: event.clientY - rect.top - drag.imageOffsetY,
 				width: drag.width,
 				height: drag.height
 			});
