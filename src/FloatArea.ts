@@ -6,6 +6,7 @@ import { ElementExt } from '@phosphor/domutils';
 import { IDragEvent } from '@phosphor/dragdrop';
 import { Widget, DockPanel } from '@phosphor/widgets';
 
+import { Dialog } from './Dialog';
 import { FloatLayout } from './FloatLayout';
 
 const EDGE_SIZE = 40;
@@ -75,11 +76,7 @@ export class FloatArea extends Widget {
 	handleEvent(event: Event) {
 		switch(event.type) {
 			case 'p-dragenter':
-				// Only handle drag events containing widgets.
-				if((event as IDragEvent).mimeData.hasData('application/vnd.phosphor.widget-factory')) {
-					this.handleDragEnter(event as IDragEvent);
-					break;
-				}
+				if(this.handleDragEnter(event as IDragEvent)) break;
 				return;
 			case 'p-dragleave':
 				this.handleDragLeave(event as IDragEvent);
@@ -101,6 +98,9 @@ export class FloatArea extends Widget {
 	}
 
 	protected handleDragEnter(event: IDragEvent) {
+		const widget = this.getDragged(event);
+		if(!widget) return(false);
+
 		let imageOffsetX = 0;
 		let imageOffsetY = 0;
 		let imageHeight = 0;
@@ -117,20 +117,41 @@ export class FloatArea extends Widget {
 
 		const rect = this.node.getBoundingClientRect();
 		const parentRect = this.overlayParent.getBoundingClientRect();
-		let width: number;
-		let height: number;
+		let width = widget.node.offsetWidth;
+		let height = widget.node.offsetHeight;
 
 		const goldenRatio = 0.618;
+		let inDialog = false;
 
-		// Compute initial floating panel size so its longer dimension
+		for(let parent = widget.parent; parent; parent = parent.parent) {
+			if(parent instanceof Dialog) {
+				inDialog = true;
+				break;
+			}
+		}
+
+		if(!inDialog) {
+			// Widget is not inside a dialog, so it's probably docked.
+			// Likely only one dimension was set by the user,
+			// so make the proportions match the golden ratio.
+			if(width > height / goldenRatio) width = height / goldenRatio;
+			else if(height > width * goldenRatio) height = width * goldenRatio;
+		}
+
+		// Restrict initial floating panel size so its longer dimension
 		// is half that of the area it's floating over.
-		if(rect.width < rect.height) {
+		if(width > rect.width / 2) {
 			width = rect.width / 2;
 			height = width * goldenRatio;
-		} else {
+		}
+		if(height > rect.height / 2) {
 			height = rect.height / 2;
 			width = height / goldenRatio;
 		}
+
+		// Round size to integer.
+		width = ~~(width + 0.5);
+		height = ~~(height + 0.5);
 
 		this.drag = {
 			rect,
@@ -149,6 +170,8 @@ export class FloatArea extends Widget {
 
 		this.overlayVisible = false;
 		this.handleDragOver(event);
+
+		return(true);
 	}
 
 	protected handleDragLeave(event: IDragEvent) {
@@ -206,11 +229,9 @@ export class FloatArea extends Widget {
 		// Let a parent dock panel handle drops near area edges.
 		if(this.onEdge(event)) return(false);
 
-		const factory = event.mimeData.getData('application/vnd.phosphor.widget-factory');
-		const widget = (typeof(factory) == 'function' && factory());
+		const widget = this.getDragged(event);
 
-		// Ensure the dragged widget is known and is not a parent of this widget.
-		if(!(widget instanceof Widget) || widget.contains(this)) {
+		if(!widget) {
 			event.dropAction = 'none';
 			return(false);
 		}
@@ -235,6 +256,19 @@ export class FloatArea extends Widget {
 		// Accept the drag.
 		event.dropAction = event.proposedAction;
 		return(true);
+	}
+
+	getDragged(event: IDragEvent) {
+		// Only handle drag events containing widgets.
+		if(!(event as IDragEvent).mimeData.hasData('application/vnd.phosphor.widget-factory')) return(null);
+
+		const factory = event.mimeData.getData('application/vnd.phosphor.widget-factory');
+		const widget = (typeof(factory) == 'function' && factory());
+
+		// Ensure the dragged widget is known and is not a parent of this widget.
+		if(!(widget instanceof Widget) || widget.contains(this)) return(null);
+
+		return(widget);
 	}
 
 	onEdge(event: IDragEvent) {
