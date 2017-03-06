@@ -72,16 +72,10 @@ export class Dialog extends Widget {
 	handleMouseDown(event: MouseEvent) {
 		if(event.button != 0) return(false);
 
-		const drag: DragData = {
-			moveX: 0,
-			moveY: 0,
-			resizeX: 0,
-			resizeY: 0,
-			x1: this.node.offsetLeft,
-			y1: this.node.offsetTop,
-			w1: this.node.offsetWidth,
-			h1: this.node.offsetHeight
-		};
+		let moveX = 0;
+		let moveY = 0;
+		let resizeX = 0;
+		let resizeY = 0;
 
 		if(event.target.parentNode == this.node) {
 			const match = event.target.className.match(/charto-Dialog-resize-([ns]?)([ew]?)( |$)/);
@@ -90,30 +84,25 @@ export class Dialog extends Widget {
 			// Resizing the dialog.
 			if(match[1]) {
 				if(match[1] == 'n') {
-					drag.moveY = 1;
-					drag.resizeY = -1;
-				} else drag.resizeY = 1;
+					moveY = 1;
+					resizeY = -1;
+				} else resizeY = 1;
 			}
 
 			if(match[2]) {
 				if(match[2] == 'w') {
-					drag.moveX = 1;
-					drag.resizeX = -1;
-				} else drag.resizeX = 1;
+					moveX = 1;
+					resizeX = -1;
+				} else resizeX = 1;
 			}
 		} else if(
 			event.target.className == 'p-TabBar-content' &&
 			event.target.parentNode.parentNode.parentNode == this.node
 		) {
 			// Moving the dialog.
-			drag.moveX = 1;
-			drag.moveY = 1;
+			moveX = 1;
+			moveY = 1;
 		} else return(false);
-
-		drag.x1 -= event.clientX * drag.moveX;
-		drag.y1 -= event.clientY * drag.moveY;
-		drag.w1 -= event.clientX * drag.resizeX;
-		drag.h1 -= event.clientY * drag.resizeY;
 
 		this.removeClass('charto-Dialog-mod-dimmable');
 
@@ -121,7 +110,15 @@ export class Dialog extends Widget {
 		document.addEventListener('mouseup', this, true);
 		document.addEventListener('keydown', this, true);
 
-		this.drag = drag;
+		const node = this.node;
+
+		this.drag = {
+			moveX, moveY, resizeX, resizeY,
+			x1: node.offsetLeft - event.clientX * moveX,
+			y1: node.offsetTop - event.clientY * moveY,
+			w1: node.offsetWidth - event.clientX * resizeX,
+			h1: node.offsetHeight - event.clientY * resizeY
+		};
 
 		return(true);
 	}

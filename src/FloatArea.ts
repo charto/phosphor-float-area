@@ -85,11 +85,11 @@ export class FloatArea extends Widget {
 				// can see if it's time to hide it.
 				return;
 			case 'p-dragover':
-				if(!this.handleDragOver(event as IDragEvent)) return;
-				break;
+				if(this.handleDragOver(event as IDragEvent)) break;
+				return;
 			case 'p-drop':
-				if(!this.handleDrop(event as IDragEvent)) return;
-				break;
+				if(this.handleDrop(event as IDragEvent)) break;
+				return;
 		}
 
 		// Note: p-dragenter must be eaten to receive other drag events.
