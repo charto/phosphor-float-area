@@ -14,6 +14,48 @@
 	cursor: default;
 }
 
+.charto-Dialog > .charto-Dialog-resize {
+	position: absolute;
+}
+
+.charto-Dialog > .charto-Dialog-resize-ns {
+	left: 16px;
+	right: 16px;
+	height: 8px;
+	cursor: ns-resize;
+}
+
+.charto-Dialog > .charto-Dialog-resize-n { top: 0px; }
+.charto-Dialog > .charto-Dialog-resize-s { bottom: 0px; }
+
+.charto-Dialog > .charto-Dialog-resize-ew {
+	top: 16px;
+	bottom: 16px;
+	width: 8px;
+	cursor: ew-resize;
+}
+
+.charto-Dialog > .charto-Dialog-resize-w { left: 0px; }
+.charto-Dialog > .charto-Dialog-resize-e { right: 0px; }
+
+.charto-Dialog > .charto-Dialog-resize-nesw {
+	width: 16px;
+	height: 16px;
+	cursor: nesw-resize;
+}
+
+.charto-Dialog > .charto-Dialog-resize-ne { right: 0px; top: 0px; }
+.charto-Dialog > .charto-Dialog-resize-sw { left: 0px; bottom: 0px; }
+
+.charto-Dialog > .charto-Dialog-resize-nwse {
+	width: 16px;
+	height: 16px;
+	cursor: nwse-resize;
+}
+
+.charto-Dialog > .charto-Dialog-resize-nw { left: 0px; top: 0px; }
+.charto-Dialog > .charto-Dialog-resize-se { right: 0px; bottom: 0px; }
+
 /* Draw a drag handle on the right side of the tab bar. */
 
 .charto-Dialog > .p-DockPanel > .p-DockPanel-tabBar > .p-TabBar-content:after {

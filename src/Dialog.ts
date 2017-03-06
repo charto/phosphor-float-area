@@ -7,8 +7,14 @@ import { Widget } from '@phosphor/widgets';
 import { DialogLayout } from './DialogLayout';
 
 interface DragData {
-	x1: number,
-	y1: number
+	moveX: number;
+	moveY: number;
+	resizeX: number;
+	resizeY: number;
+	x1: number;
+	y1: number;
+	w1: number;
+	h1: number;
 }
 
 export class Dialog extends Widget {
@@ -16,6 +22,18 @@ export class Dialog extends Widget {
 		super({ node: Dialog.createNode() });
 
 		this.addClass('charto-Dialog');
+		this.addClass('charto-Dialog-mod-dimmable');
+
+		for(let classList of 'ns n,ew e,ns s,ew w,nwse nw,nesw ne,nesw sw,nwse se'.split(',')) {
+			const content = document.createElement('div');
+			content.className = (
+				'charto-Dialog-resize ' +
+				classList.split(' ').map(
+					(resizer: string) => 'charto-Dialog-resize-' + resizer
+				).join(' ')
+			);
+			this.node.appendChild(content);
+		}
 
 		this.layout = new DialogLayout();
 	}
@@ -37,14 +55,14 @@ export class Dialog extends Widget {
 		const mouseEvent = event as MouseEvent;
 		switch(event.type) {
 			case 'mousedown':
-				if(mouseEvent.button == 0) this.handleMouseDown(mouseEvent);
-				break;
+				if(this.handleMouseDown(mouseEvent)) break;
+				return;
 			case 'mousemove':
 				this.handleMouseMove(mouseEvent);
 				break;
 			case 'mouseup':
-				if(mouseEvent.button == 0) this.handleMouseUp(mouseEvent);
-				break;
+				if(this.handleMouseUp(mouseEvent)) break;
+				return;
 		}
 
 		event.preventDefault();
@@ -52,28 +70,86 @@ export class Dialog extends Widget {
 	}
 
 	handleMouseDown(event: MouseEvent) {
+		if(event.button != 0) return(false);
+
+		const drag: DragData = {
+			moveX: 0,
+			moveY: 0,
+			resizeX: 0,
+			resizeY: 0,
+			x1: this.node.offsetLeft,
+			y1: this.node.offsetTop,
+			w1: this.node.offsetWidth,
+			h1: this.node.offsetHeight
+		};
+
+		if(event.target.parentNode == this.node) {
+			const match = event.target.className.match(/charto-Dialog-resize-([ns]?)([ew]?)( |$)/);
+			if(!match) return(false);
+
+			// Resizing the dialog.
+			if(match[1]) {
+				if(match[1] == 'n') {
+					drag.moveY = 1;
+					drag.resizeY = -1;
+				} else drag.resizeY = 1;
+			}
+
+			if(match[2]) {
+				if(match[2] == 'w') {
+					drag.moveX = 1;
+					drag.resizeX = -1;
+				} else drag.resizeX = 1;
+			}
+		} else if(
+			event.target.className == 'p-TabBar-content' &&
+			event.target.parentNode.parentNode.parentNode == this.node
+		) {
+			// Moving the dialog.
+			drag.moveX = 1;
+			drag.moveY = 1;
+		} else return(false);
+
+		drag.x1 -= event.clientX * drag.moveX;
+		drag.y1 -= event.clientY * drag.moveY;
+		drag.w1 -= event.clientX * drag.resizeX;
+		drag.h1 -= event.clientY * drag.resizeY;
+
+		this.removeClass('charto-Dialog-mod-dimmable');
+
 		document.addEventListener('mousemove', this, true);
 		document.addEventListener('mouseup', this, true);
 		document.addEventListener('keydown', this, true);
 
-		this.drag = {
-			x1: this.node.offsetLeft - event.clientX,
-			y1: this.node.offsetTop - event.clientY
-		};
+		this.drag = drag;
+
+		return(true);
 	}
 
 	handleMouseMove(event: MouseEvent) {
-		if(!this.drag) return;
+		const drag = this.drag;
+		if(!drag) return;
 
-		this.node.style.left = this.drag.x1 + event.clientX + 'px';
-		this.node.style.top = this.drag.y1 + event.clientY + 'px';
+		Widget.setGeometry(
+			this,
+			drag.x1 + event.clientX * drag.moveX,
+			drag.y1 + event.clientY * drag.moveY,
+			drag.w1 + event.clientX * drag.resizeX,
+			drag.h1 + event.clientY * drag.resizeY
+		);
 	}
 
 	handleMouseUp(event: MouseEvent) {
+		if(event.button != 0) return(false);
+
+		this.addClass('charto-Dialog-mod-dimmable');
+
 		document.removeEventListener('mousemove', this, true);
 		document.removeEventListener('mouseup', this, true);
 		document.removeEventListener('keydown', this, true);
 		this.drag = null;
+
+		return(true);
 	}
 
 	addWidget(widget: Widget, options: DialogLayout.AddOptions = {}): void {
