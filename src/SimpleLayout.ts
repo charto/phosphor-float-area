@@ -4,7 +4,7 @@
 import { Message, MessageLoop } from '@phosphor/messaging';
 import { IIterator, iter } from '@phosphor/algorithm';
 import { ElementExt } from '@phosphor/domutils';
-import { Widget, Layout } from '@phosphor/widgets';
+import { Widget, Layout, LayoutItem } from '@phosphor/widgets';
 
 export class SimpleLayout extends Layout {
 	iter(): IIterator<Widget> {
@@ -12,27 +12,33 @@ export class SimpleLayout extends Layout {
 	}
 
 	dispose() {
-		for(let widget of this.widgetList) widget.dispose();
+		for(let item of this.itemList) item.dispose();
+
+		this.itemList.length = 0;
+
 		super.dispose();
 	}
 
 	addWidget(widget: Widget) {
 		this.widgetList.push(widget);
 
-		this.attachWidget(widget);
-
-		// Send fit-request to parent (Layout class will catch it).
-		this.parent!.fit();
+		return(this.attachWidget(this.widgetList.length - 1, widget));
 	}
 
 	removeWidget(widget: Widget) {
+		const index = this.widgetList.indexOf(widget);
+
+		this.widgetList.splice(index, 1);
+
 		if(this.parent) {
-			this.detachWidget(widget);
+			this.detachWidget(index, widget);
 			this.parent.fit();
 		}
 	}
 
-	protected detachWidget(widget: Widget) {
+	protected detachWidget(index: number, widget: Widget) {
+		this.itemList.splice(index, 1);
+
 		const parentAttached = this.parent!.isAttached;
 
 		if(parentAttached) MessageLoop.sendMessage(widget, Widget.Msg.BeforeDetach);
@@ -68,28 +74,35 @@ export class SimpleLayout extends Layout {
 	}
 
 	updateWidgets(x: number, y: number, width: number, height: number) {
-		for(let widget of this.widgetList) {
-			this.updateWidget(widget, x, y, width, height);
+		for(let item of this.itemList) {
+			this.updateItem(item, x, y, width, height);
 		}
 	}
 
-	protected attachWidget(widget: Widget): void {
-		if (this.parent!.node == widget.node.parentNode) return;
+	updateItem(item: LayoutItem, x: number, y: number, width: number, height: number) {}
 
-		Widget.prepareGeometry(widget);
+	protected attachWidget(index: number, widget: Widget) {
+		if (this.parent!.node == widget.node.parentNode) return(null);
 
-		if (this.parent!.isAttached) {
+		const item = new LayoutItem(widget);
+		this.itemList[index] = item;
+
+		if(this.parent!.isAttached) {
 			MessageLoop.sendMessage(widget, Widget.Msg.BeforeAttach);
 		}
 
 		this.parent!.node.appendChild(widget.node);
 
-		if (this.parent!.isAttached) {
+		if(this.parent!.isAttached) {
 			MessageLoop.sendMessage(widget, Widget.Msg.AfterAttach);
 		}
+
+		// Send fit-request to parent (Layout class will catch it).
+		this.parent!.fit();
+
+		return(item);
 	}
 
-	updateWidget(widget: Widget, x: number, y: number, width: number, height: number) {}
-
 	protected widgetList: Widget[] = [];
+	protected itemList: LayoutItem[] = [];
 }

@@ -2,7 +2,7 @@
 // Released under the MIT license, see LICENSE.
 
 import { Message } from '@phosphor/messaging';
-import { Widget } from '@phosphor/widgets';
+import { Widget, LayoutItem } from '@phosphor/widgets';
 
 import { DialogLayout } from './DialogLayout';
 
@@ -76,9 +76,10 @@ export class Dialog extends Widget {
 		let moveY = 0;
 		let resizeX = 0;
 		let resizeY = 0;
+		const target = event.target as Element;
 
-		if(event.target.parentNode == this.node) {
-			const match = event.target.className.match(/charto-Dialog-resize-([ns]?)([ew]?)( |$)/);
+		if(target.parentNode == this.node) {
+			const match = target.className.match(/charto-Dialog-resize-([ns]?)([ew]?)( |$)/);
 			if(!match) return(false);
 
 			// Resizing the dialog.
@@ -96,8 +97,8 @@ export class Dialog extends Widget {
 				} else resizeX = 1;
 			}
 		} else if(
-			event.target.className == 'p-TabBar-content' &&
-			event.target.parentNode.parentNode.parentNode == this.node
+			target.className == 'p-TabBar-content' &&
+			target.parentNode!.parentNode!.parentNode == this.node
 		) {
 			// Moving the dialog.
 			moveX = 1;
@@ -127,13 +128,14 @@ export class Dialog extends Widget {
 		const drag = this.drag;
 		if(!drag) return;
 
-		Widget.setGeometry(
-			this,
-			drag.x1 + event.clientX * drag.moveX,
-			drag.y1 + event.clientY * drag.moveY,
-			drag.w1 + event.clientX * drag.resizeX,
-			drag.h1 + event.clientY * drag.resizeY
-		);
+		if(this.layoutItem) {
+			this.layoutItem.update(
+				drag.x1 + event.clientX * drag.moveX,
+				drag.y1 + event.clientY * drag.moveY,
+				drag.w1 + event.clientX * drag.resizeX,
+				drag.h1 + event.clientY * drag.resizeY
+			);
+		}
 	}
 
 	handleMouseUp(event: MouseEvent) {
@@ -154,6 +156,8 @@ export class Dialog extends Widget {
 	}
 
 	private drag: DragData | null;
+
+	layoutItem: LayoutItem | null;
 }
 
 export namespace Dialog {

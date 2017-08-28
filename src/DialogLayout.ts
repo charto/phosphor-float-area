@@ -2,7 +2,7 @@
 // Released under the MIT license, see LICENSE.
 
 import { Message } from '@phosphor/messaging';
-import { Widget } from '@phosphor/widgets';
+import { Widget, LayoutItem } from '@phosphor/widgets';
 
 import { Dialog } from './Dialog';
 import { SimpleLayout } from './SimpleLayout';
@@ -13,7 +13,7 @@ export class DialogLayout extends SimpleLayout {
 	}
 
 	addWidget(widget: Widget, options: DialogLayout.AddOptions = {}) {
-		super.addWidget(widget);
+		return(super.addWidget(widget));
 	}
 
 	removeWidget(widget: Widget) {
@@ -27,8 +27,8 @@ export class DialogLayout extends SimpleLayout {
 		super.onFitRequest(msg);
 	}
 
-	updateWidget(widget: Widget, x: number, y: number, width: number, height: number) {
-		Widget.setGeometry(widget, x, y, width, height);
+	updateItem(item: LayoutItem, x: number, y: number, width: number, height: number) {
+		item.update(x, y, width, height);
 	}
 }
 

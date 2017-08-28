@@ -199,14 +199,9 @@ export class FloatArea extends Widget {
 		const top = event.clientY - drag.offsetTop;
 
 		this.overlay.show({
-			mouseX: event.clientX,
-			mouseY: event.clientY,
-			parentRect: drag.rect,
 			left, top,
 			right: drag.offsetRight - left,
-			bottom: drag.offsetBottom - top,
-			width: drag.width,
-			height: drag.height
+			bottom: drag.offsetBottom - top
 		});
 
 		// Tentatively accept the drag.
