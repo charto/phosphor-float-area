@@ -234,8 +234,7 @@ export class FloatArea extends Widget {
 		// Deparent the widget and wait for layout changes to settle.
 		widget.parent = null;
 
-		// Maybe move to the update handler and remove timer?
-		setTimeout(() => {
+		(this.layout as FloatLayout).afterUpdate(() => {
 			// Get updated float area bounds.
 			const rect = this.node.getBoundingClientRect();
 
@@ -246,7 +245,7 @@ export class FloatArea extends Widget {
 				width: drag.width,
 				height: drag.height
 			});
-		}, 1);
+		});
 
 		// Accept the drag.
 		event.dropAction = event.proposedAction;

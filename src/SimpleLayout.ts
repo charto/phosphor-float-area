@@ -19,6 +19,10 @@ export class SimpleLayout extends Layout {
 		super.dispose();
 	}
 
+	afterUpdate(handler: () => void) {
+		this.updateHandlerList.push(handler);
+	}
+
 	addWidget(widget: Widget) {
 		this.widgetList.push(widget);
 
@@ -71,6 +75,15 @@ export class SimpleLayout extends Layout {
 			width - box.horizontalSum,
 			height - box.verticalSum
 		);
+
+		let count = 0;
+
+		for(let handler of this.updateHandlerList) {
+			handler();
+			++count;
+		}
+
+		if(count) this.updateHandlerList = [];
 	}
 
 	updateWidgets(x: number, y: number, width: number, height: number) {
@@ -105,4 +118,6 @@ export class SimpleLayout extends Layout {
 
 	protected widgetList: Widget[] = [];
 	protected itemList: LayoutItem[] = [];
+	private updateHandlerList: (() => void)[] = [];
+
 }
