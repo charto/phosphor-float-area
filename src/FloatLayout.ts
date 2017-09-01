@@ -65,9 +65,6 @@ export class FloatLayout extends SimpleLayout {
 		super.onFitRequest(msg);
 	}
 
-	updateWidget(widget: Widget) {
-		// Widget.setGeometry(widget, 0, 0, 200, 200);
-	}
 }
 
 export namespace FloatLayout {

@@ -28,6 +28,7 @@ export class DialogLayout extends SimpleLayout {
 	}
 
 	updateItem(item: LayoutItem, x: number, y: number, width: number, height: number) {
+		// Resize content to match the dialog.
 		item.update(x, y, width, height);
 	}
 }
