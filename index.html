@@ -1,0 +1,27 @@
+<!doctype html>
+<html><head>
+
+	<title>phosphor-float-area</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+	<link href="www/css/index.css" rel="stylesheet">
+	<style type="text/css"></style>
+
+	<script type="text/javascript">
+		document.addEventListener('DOMContentLoaded', function() {
+			System.import('dist/bundle').catch(function() {}).then(function() {
+				System.import('test/App').catch(function(err) {
+					throw(err.originalErr || err);
+				});
+			});
+		});
+	</script>
+
+	<script defer src="node_modules/systemjs/dist/system.src.js" type="text/javascript"></script>
+	<script defer src="www/config-base.js"></script>
+	<script defer src="config.js"></script>
+	<script defer src="www/config-npm.js"></script>
+
+</head>
+<body></body>
+</html>

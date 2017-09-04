@@ -1,0 +1,20 @@
+{
+	"compileOnSave": true,
+	"compilerOptions": {
+		"baseUrl": ".",
+		"declaration": true,
+		"experimentalDecorators": true,
+		"lib": [ "dom", "es5", "es2015.promise" ],
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"noImplicitAny": true,
+		"noImplicitThis": true,
+		"removeComments": false,
+		"sourceMap": true,
+		"strictNullChecks": true,
+		"target": "es5"
+	},
+	"files": [
+		"App.ts"
+	]
+}

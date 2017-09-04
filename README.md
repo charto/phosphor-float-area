@@ -1,20 +1,22 @@
 phosphor-float-area
 ===================
 
-This is a MDI style container for PhosphorJS widgets that can be freely dragged inside it.
-It's compatible with DockPanel so when placed inside one, widgets can be docked and undocked on the edges.
+A `FloatArea` widget for [PhosphorJS](https://github.com/phosphorjs/phosphor).
+Widgets dropped over it become resizable, floating MDI-style dialogs.
+Widgets are also draggable between dialogs and dockable back to a containing `DockPanel` if available.
 
-Coding style
-------------
+Demo
+----
 
-We try to match PhosphorJS with these exceptions:
+Run the following commands and then open [localhost:8080](http://localhost:8080/) to see it in action:
 
-- Tab instead of 2 spaces for indentation.
-- No space between `if` or `for` and the following parenthesis.
-- No `I` prefix in interface names.
-- Parentheses around `return` statement argument.
-
-These choices match other `charto` projects.
+```
+git clone https://github.com/charto/phosphor-float-area.git
+cd phosphor-float-area
+npm install
+npm run prepublish
+npm start
+```
 
 License
 =======

@@ -6,7 +6,8 @@
   "typings": "dist/index.d.ts",
   "scripts": {
     "tsc": "tsc",
-    "prepublish": "tsc -p src"
+    "start": "csrv .",
+    "prepublish": "tsc -p src && tsc -p test"
   },
   "author": "Juha Järvi",
   "license": "MIT",
@@ -25,7 +26,10 @@
     "dialog"
   ],
   "devDependencies": {
-    "typescript": "^2.4.2"
+    "csrv": "^0.1.0",
+    "systemjs": "^0.20.18",
+    "systemjs-plugin-css": "^0.1.35",
+    "typescript": "^2.5.2"
   },
   "dependencies": {
     "@phosphor/messaging": "^1.2.2",

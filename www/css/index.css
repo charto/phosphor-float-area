@@ -1,0 +1,23 @@
+body {
+	background: #fcf8f4;
+}
+
+.Red {}
+
+/* Make dialogs semi-transparent when the mouse is not over them. */
+
+.charto-Dialog,
+.charto-content,
+.p-TabBar-tab {
+	transition: background-color 0.125s;
+	transition: opacity 0.125s;
+}
+
+.charto-Dialog {
+	background: #fcf8f4;
+}
+
+.charto-Dialog-mod-dimmable:not(:hover) {
+	background-color: rgba(255, 255, 255, 0.5);
+	opacity: 0.875;
+}
