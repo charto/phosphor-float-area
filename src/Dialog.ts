@@ -1,7 +1,7 @@
 // This file is part of phosphor-float-area, copyright (C) 2017 BusFaster Ltd.
 // Released under the MIT license, see LICENSE.
 
-import { Message } from '@phosphor/messaging';
+import { Message, MessageLoop, ConflatableMessage } from '@phosphor/messaging';
 import { Widget, LayoutItem } from '@phosphor/widgets';
 
 import { DialogLayout } from './DialogLayout';
@@ -17,7 +17,34 @@ interface DragData {
 	h1: number;
 }
 
+export class DialogMoveMessage extends ConflatableMessage {
+
+	constructor(
+		public widget: Dialog,
+		public x: number,
+		public y: number,
+		public width: number,
+		public height: number
+	) {
+		super('dialog-move');
+	}
+
+	conflate(other: DialogMoveMessage) {
+		if(this.widget != other.widget) return(false);
+
+		this.x = other.x;
+		this.y = other.y;
+		this.width = other.width;
+		this.height = other.height;
+
+		console.log(this.x + ' ' + other.x);
+		return(true);
+	}
+
+}
+
 export class Dialog extends Widget {
+
 	constructor(options: Dialog.Options = {}) {
 		super({ node: Dialog.createNode() });
 
@@ -128,14 +155,13 @@ export class Dialog extends Widget {
 		const drag = this.drag;
 		if(!drag) return;
 
-		if(this.layoutItem) {
-			this.layoutItem.update(
-				drag.x1 + event.clientX * drag.moveX,
-				drag.y1 + event.clientY * drag.moveY,
-				drag.w1 + event.clientX * drag.resizeX,
-				drag.h1 + event.clientY * drag.resizeY
-			);
-		}
+		MessageLoop.postMessage(this.parent!, new DialogMoveMessage(
+			this,
+			drag.x1 + event.clientX * drag.moveX,
+			drag.y1 + event.clientY * drag.moveY,
+			drag.w1 + event.clientX * drag.resizeX,
+			drag.h1 + event.clientY * drag.resizeY
+		));
 	}
 
 	handleMouseUp(event: MouseEvent) {
@@ -157,7 +183,6 @@ export class Dialog extends Widget {
 
 	private drag: DragData | null;
 
-	layoutItem: LayoutItem | null;
 }
 
 export namespace Dialog {

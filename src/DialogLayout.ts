@@ -27,6 +27,10 @@ export class DialogLayout extends SimpleLayout {
 		super.onFitRequest(msg);
 	}
 
+	updateWidgets(x: number, y: number, width: number, height: number) {
+		this.itemMap.forEach(item => this.updateItem(item, x, y, width, height));
+	}
+
 	updateItem(item: LayoutItem, x: number, y: number, width: number, height: number) {
 		// Resize content to match the dialog.
 		item.update(x, y, width, height);

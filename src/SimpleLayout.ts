@@ -12,10 +12,10 @@ export class SimpleLayout extends Layout {
 	}
 
 	dispose() {
-		for(let item of this.itemList) item.dispose();
+		this.itemMap.forEach(item => item.dispose());
+		this.itemMap.clear();
 
-		this.itemList.length = 0;
-
+		for(let widget of this.widgetList) widget.dispose();
 		super.dispose();
 	}
 
@@ -24,24 +24,45 @@ export class SimpleLayout extends Layout {
 	}
 
 	addWidget(widget: Widget) {
+		let item: LayoutItem | undefined;
 		this.widgetList.push(widget);
 
-		return(this.attachWidget(this.widgetList.length - 1, widget));
+		if(this.parent) {
+			item = this.attachWidget(widget);
+			this.parent.fit();
+		}
+
+		return(item);
 	}
 
 	removeWidget(widget: Widget) {
-		const index = this.widgetList.indexOf(widget);
-
-		this.widgetList.splice(index, 1);
+		this.widgetList.splice(this.widgetList.indexOf(widget), 1);
 
 		if(this.parent) {
-			this.detachWidget(index, widget);
+			this.detachWidget(widget);
 			this.parent.fit();
 		}
 	}
 
-	protected detachWidget(index: number, widget: Widget) {
-		this.itemList.splice(index, 1);
+	protected attachWidget(widget: Widget) {
+		if (this.parent!.node == widget.node.parentNode) return;
+
+		const parentAttached = this.parent!.isAttached;
+
+		if(parentAttached) MessageLoop.sendMessage(widget, Widget.Msg.BeforeAttach);
+
+		this.parent!.node.appendChild(widget.node);
+
+		if(parentAttached) MessageLoop.sendMessage(widget, Widget.Msg.AfterAttach);
+
+		const item = new LayoutItem(widget);
+		this.itemMap.set(widget, item);
+
+		return(item);
+	}
+
+	protected detachWidget(widget: Widget) {
+		if (this.parent!.node != widget.node.parentNode) return;
 
 		const parentAttached = this.parent!.isAttached;
 
@@ -50,6 +71,18 @@ export class SimpleLayout extends Layout {
 		this.parent!.node.removeChild(widget.node);
 
 		if(parentAttached) MessageLoop.sendMessage(widget, Widget.Msg.AfterDetach);
+
+		const item = this.itemMap.get(widget);
+
+		if(item) {
+			this.itemMap.delete(widget);
+			item.dispose();
+		}
+	}
+
+	protected onBeforeAttach(msg: Message) {
+		super.onBeforeAttach(msg);
+		this.parent!.fit();
 	}
 
 	protected onFitRequest(msg: Message): void {
@@ -87,37 +120,19 @@ export class SimpleLayout extends Layout {
 	}
 
 	updateWidgets(x: number, y: number, width: number, height: number) {
-		for(let item of this.itemList) {
-			this.updateItem(item, x, y, width, height);
-		}
+		//for(let item of this.itemList) {
+		//	this.updateItem(item, x, y, width, height);
+		//}
 	}
 
-	updateItem(item: LayoutItem, x: number, y: number, width: number, height: number) {}
-
-	protected attachWidget(index: number, widget: Widget) {
-		if (this.parent!.node == widget.node.parentNode) return(null);
-
-		const item = new LayoutItem(widget);
-		this.itemList[index] = item;
-
-		if(this.parent!.isAttached) {
-			MessageLoop.sendMessage(widget, Widget.Msg.BeforeAttach);
-		}
-
-		this.parent!.node.appendChild(widget.node);
-
-		if(this.parent!.isAttached) {
-			MessageLoop.sendMessage(widget, Widget.Msg.AfterAttach);
-		}
-
-		// Send fit-request to parent (Layout class will catch it).
-		this.parent!.fit();
-
-		return(item);
+	updateItem(item: LayoutItem, x: number, y: number, width: number, height: number) {
+		item.update(x, y, width, height);
 	}
 
 	protected widgetList: Widget[] = [];
-	protected itemList: LayoutItem[] = [];
+	protected itemMap = new Map<Widget, LayoutItem>();
+
 	private updateHandlerList: (() => void)[] = [];
+
 
 }

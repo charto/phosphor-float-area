@@ -6,7 +6,7 @@ import { ElementExt } from '@phosphor/domutils';
 import { IDragEvent } from '@phosphor/dragdrop';
 import { Widget, DockPanel } from '@phosphor/widgets';
 
-import { Dialog } from './Dialog';
+import { Dialog, DialogMoveMessage } from './Dialog';
 import { FloatLayout } from './FloatLayout';
 
 const EDGE_SIZE = 40;
@@ -71,6 +71,16 @@ export class FloatArea extends Widget {
 		this.node.removeEventListener('p-dragleave', this);
 		this.node.removeEventListener('p-dragover', this);
 		this.node.removeEventListener('p-drop', this);
+	}
+
+	processMessage(msg: Message): void {
+		if(msg.type === 'dialog-move') {
+			const move = msg as DialogMoveMessage;
+
+			(this.layout as FloatLayout).updateWidget(move.widget, move.x, move.y, move.width, move.height);
+		} else {
+			super.processMessage(msg);
+		}
 	}
 
 	handleEvent(event: Event) {
@@ -246,6 +256,8 @@ export class FloatArea extends Widget {
 				height: drag.height
 			});
 		});
+
+		this.update();
 
 		// Accept the drag.
 		event.dropAction = event.proposedAction;

@@ -37,13 +37,12 @@ export class FloatLayout extends SimpleLayout {
 
 		const layoutItem = super.addWidget(dialog);
 
-		dialog.layoutItem = layoutItem;
-
 		const box = ElementExt.boxSizing(dialog.node);
 		const tabBar = (dockPanel.node.querySelector('.p-TabBar') || {}) as HTMLElement;
 
 		if(layoutItem) {
-			layoutItem.update(
+			this.updateItem(
+				layoutItem,
 				(options.left || 0) - box.paddingLeft - box.borderLeft,
 				(options.top || 0) - box.paddingTop - box.borderTop,
 				(options.width || 320) + box.horizontalSum,
@@ -56,6 +55,15 @@ export class FloatLayout extends SimpleLayout {
 
 	removeWidget(widget: Widget) {
 		super.removeWidget(widget);
+	}
+
+	updateWidget(widget: Widget, x: number, y: number, width: number, height: number) {
+		const item = this.itemMap.get(widget);
+		if(item) this.updateItem(item, x, y, width, height);
+	}
+
+	updateItem(item: LayoutItem, x: number, y: number, width: number, height: number) {
+		item.update(x, y, width, height);
 	}
 
 	protected onFitRequest(msg: Message): void {
