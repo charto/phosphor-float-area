@@ -6,7 +6,12 @@ import { IIterator, iter } from '@phosphor/algorithm';
 import { ElementExt } from '@phosphor/domutils';
 import { Widget, Layout, LayoutItem } from '@phosphor/widgets';
 
-export class SimpleLayout extends Layout {
+export class SimpleLayout<Item extends LayoutItem = LayoutItem> extends Layout {
+
+	constructor(protected Item = LayoutItem as { new(widget: Widget): Item }) {
+		super();
+	}
+
 	iter(): IIterator<Widget> {
 		return iter(this.widgetList);
 	}
@@ -20,11 +25,11 @@ export class SimpleLayout extends Layout {
 	}
 
 	afterUpdate(handler: () => void) {
-		this.updateHandlerList.push(handler);
+		this.afterUpdateList.push(handler);
 	}
 
 	addWidget(widget: Widget) {
-		let item: LayoutItem | undefined;
+		let item: Item | undefined;
 		this.widgetList.push(widget);
 
 		if(this.parent) {
@@ -55,7 +60,7 @@ export class SimpleLayout extends Layout {
 
 		if(parentAttached) MessageLoop.sendMessage(widget, Widget.Msg.AfterAttach);
 
-		const item = new LayoutItem(widget);
+		const item = new this.Item(widget);
 		this.itemMap.set(widget, item);
 
 		return(item);
@@ -99,40 +104,39 @@ export class SimpleLayout extends Layout {
 		if(this.parent!.isVisible) this.update(msg.width, msg.height);
 	}
 
-	update(width = this.parent!.node.offsetWidth, height = this.parent!.node.offsetHeight) {
-		const box = ElementExt.boxSizing(this.parent!.node);
+	updateBox(width = this.parent!.node.offsetWidth, height = this.parent!.node.offsetHeight) {
+		const box = this.box;
+		const sizing = ElementExt.boxSizing(this.parent!.node);
 
-		this.updateWidgets(
-			box.paddingTop,
-			box.paddingLeft,
-			width - box.horizontalSum,
-			height - box.verticalSum
-		);
+		box.x = sizing.paddingLeft,
+		box.y = sizing.paddingTop,
+		box.width = width - sizing.horizontalSum;
+		box.height = height - sizing.verticalSum;
+	}
 
-		let count = 0;
+	update(width?: number, height?: number) {
+		this.updateBox(width, height);
 
-		for(let handler of this.updateHandlerList) {
-			handler();
-			++count;
+		this.onUpdate();
+
+		if(this.afterUpdateList.length) {
+			for(let handler of this.afterUpdateList) handler();
+
+			this.afterUpdateList = [];
 		}
-
-		if(count) this.updateHandlerList = [];
 	}
 
-	updateWidgets(x: number, y: number, width: number, height: number) {
-		//for(let item of this.itemList) {
-		//	this.updateItem(item, x, y, width, height);
-		//}
-	}
+	onUpdate() {}
 
-	updateItem(item: LayoutItem, x: number, y: number, width: number, height: number) {
+	updateItem(item: Item, x: number, y: number, width: number, height: number) {
 		item.update(x, y, width, height);
 	}
 
+	protected box = { x: 0, y: 0, width: 0, height: 0 };
+
 	protected widgetList: Widget[] = [];
-	protected itemMap = new Map<Widget, LayoutItem>();
+	protected itemMap = new Map<Widget, Item>();
 
-	private updateHandlerList: (() => void)[] = [];
-
+	private afterUpdateList: (() => void)[] = [];
 
 }

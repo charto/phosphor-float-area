@@ -8,9 +8,26 @@ import { Widget, LayoutItem, DockPanel, TabBar } from '@phosphor/widgets';
 import { Dialog } from './Dialog';
 import { SimpleLayout } from './SimpleLayout';
 
-export class FloatLayout extends SimpleLayout {
+export class FloatLayoutItem extends LayoutItem {
+
+	updateUser(x: number, y: number, width: number, height: number) {
+		this.userX = x;
+		this.userY = y;
+		this.userWidth = width;
+		this.userHeight = height;
+	}
+
+	userY: number;
+	userX: number;
+	userWidth: number;
+	userHeight: number;
+
+}
+
+export class FloatLayout extends SimpleLayout<FloatLayoutItem> {
+
 	constructor(options: FloatLayout.Options = {}) {
-		super();
+		super(FloatLayoutItem);
 	}
 
 	addWidget(widget: Widget, options: FloatLayout.AddOptions = {}) {
@@ -57,12 +74,33 @@ export class FloatLayout extends SimpleLayout {
 		super.removeWidget(widget);
 	}
 
+	onUpdate() {
+		const box = this.box;
+
+		// Resize content to match the dialog.
+		this.itemMap.forEach(item => this.updateItem(item, item.userX, item.userY, item.userWidth, item.userHeight));
+	}
+
 	updateWidget(widget: Widget, x: number, y: number, width: number, height: number) {
 		const item = this.itemMap.get(widget);
+
 		if(item) this.updateItem(item, x, y, width, height);
 	}
 
-	updateItem(item: LayoutItem, x: number, y: number, width: number, height: number) {
+	updateItem(item: FloatLayoutItem, x: number, y: number, width: number, height: number) {
+		const box = this.box;
+
+		item.updateUser(x, y, width, height);
+
+		if(x < box.x) x = box.x;
+		if(y < box.y) y = box.y;
+
+		if(width > box.width + 2) width = box.width + 2;
+		if(height > box.height + 2) height = box.height + 2;
+
+		if(x - box.x - 2 + width > box.width) x = box.x + 2 + box.width - width;
+		if(y - box.y - 2 + height > box.height) y = box.y + 2 + box.height - height;
+
 		item.update(x, y, width, height);
 	}
 
