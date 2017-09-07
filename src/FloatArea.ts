@@ -7,7 +7,7 @@ import { IDragEvent } from '@phosphor/dragdrop';
 import { Widget, DockPanel } from '@phosphor/widgets';
 
 import { Dialog, DialogMoveMessage, DialogRaiseMessage } from './Dialog';
-import { FloatLayout } from './FloatLayout';
+import { FloatLayout, sendLeaveEvent } from './FloatLayout';
 
 const EDGE_SIZE = 40;
 
@@ -343,26 +343,6 @@ export class FloatArea extends Widget {
 	edgeHeight: number;
 
 	private drag: DragData | null;
-}
-
-/** Dispatch a new p-dragleave event outside any widgets. */
-function sendLeaveEvent(event: IDragEvent, node: HTMLElement) {
-	const leaveEvent = document.createEvent('MouseEvent');
-	const oob = -1000;
-
-	// Claim that the mouse entered the document body at faraway coordinates,
-	// so any event receivers will consider it outside their bounds.
-
-	leaveEvent.initMouseEvent(
-		'p-dragleave', true, true, window, 0,
-		oob, oob,
-		oob, oob,
-		event.ctrlKey, event.altKey,
-		event.shiftKey, event.metaKey,
-		event.button, document.body
-	);
-
-	node.dispatchEvent(leaveEvent);
 }
 
 export namespace FloatArea {

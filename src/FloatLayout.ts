@@ -2,6 +2,7 @@
 // Released under the MIT license, see LICENSE.
 
 import { Message, MessageLoop, IMessageHandler } from '@phosphor/messaging';
+import { IDragEvent } from '@phosphor/dragdrop';
 import { ElementExt } from '@phosphor/domutils';
 import { Widget, LayoutItem, DockPanel, TabBar } from '@phosphor/widgets';
 
@@ -36,6 +37,28 @@ export class FloatLayout extends SimpleLayout<FloatLayoutItem> {
 
 		dockPanel.addWidget(widget);
 		dialog.addWidget(dockPanel);
+
+		const handleEvent = dockPanel.handleEvent;
+		let leaveEventSent = false;
+
+		dockPanel.handleEvent = function(this: DockPanel, event: Event) {
+			switch(event.type) {
+				case 'p-dragover':
+					if(!leaveEventSent && this.node.parentNode) {
+						// In case a parent DockPanel is also showing an overlay,
+						// send a p-dragleave event to trigger hiding it.
+						sendLeaveEvent(event as IDragEvent, this.node.parentNode as HTMLElement);
+						leaveEventSent = true;
+					}
+					break;
+
+				case 'p-dragleave':
+					leaveEventSent = false;
+					break;
+			}
+
+			if(handleEvent) handleEvent.apply(this, arguments);
+		}
 
 		dockPanel.parent = dialog;
 		dialog.parent = this.parent;
@@ -115,6 +138,26 @@ export class FloatLayout extends SimpleLayout<FloatLayoutItem> {
 		super.onFitRequest(msg);
 	}
 
+}
+
+/** Dispatch a new p-dragleave event outside any widgets. */
+export function sendLeaveEvent(event: IDragEvent, node: HTMLElement) {
+	const leaveEvent = document.createEvent('MouseEvent');
+	const oob = -1000;
+
+	// Claim that the mouse entered the document body at faraway coordinates,
+	// so any event receivers will consider it outside their bounds.
+
+	leaveEvent.initMouseEvent(
+		'p-dragleave', true, true, window, 0,
+		oob, oob,
+		oob, oob,
+		event.ctrlKey, event.altKey,
+		event.shiftKey, event.metaKey,
+		event.button, document.body
+	);
+
+	node.dispatchEvent(leaveEvent);
 }
 
 export namespace FloatLayout {
