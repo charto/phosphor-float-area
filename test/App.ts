@@ -40,6 +40,7 @@ class ContentWidget extends Widget {
 		content.classList.add('charto-content-inner');
 
 		input.placeholder = 'Placeholder...';
+		input.className = 'placeholder';
 		content.appendChild(input);
 		node.appendChild(content);
 
@@ -50,6 +51,7 @@ class ContentWidget extends Widget {
 		super({ node: ContentWidget.createNode() });
 
 		this.addClass('charto-content');
+		this.addClass('demo-content');
 		this.addClass(name.toLowerCase());
 
 		this.title.label = name;

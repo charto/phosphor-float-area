@@ -121,11 +121,14 @@ export class FloatLayout extends SimpleLayout<FloatLayoutItem> {
 		if(x < box.x) x = box.x;
 		if(y < box.y) y = box.y;
 
-		if(width > box.width + 2) width = box.width + 2;
-		if(height > box.height + 2) height = box.height + 2;
+		width = Math.max(Math.min(width, item.maxWidth || Infinity), item.minWidth);
+		height = Math.max(Math.min(height, item.maxHeight || Infinity), item.minHeight);
 
-		if(x - box.x - 2 + width > box.width) x = box.x + 2 + box.width - width;
-		if(y - box.y - 2 + height > box.height) y = box.y + 2 + box.height - height;
+		if(width > box.innerWidth) width = box.innerWidth;
+		if(height > box.innerHeight) height = box.innerHeight;
+
+		if(x - box.x + width > box.innerWidth) x = box.x + box.innerWidth - width;
+		if(y - box.y + height > box.innerHeight) y = box.y + box.innerHeight - height;
 
 		item.update(x, y, width, height);
 	}

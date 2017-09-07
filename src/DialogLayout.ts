@@ -20,18 +20,11 @@ export class DialogLayout extends SimpleLayout {
 		super.removeWidget(widget);
 	}
 
-	protected onFitRequest(msg: Message): void {
-		// TODO: Calculate required size to fit children.
-		// See DockLayout._fit
-
-		super.onFitRequest(msg);
-	}
-
 	onUpdate() {
 		const box = this.box;
 
 		// Resize content to match the dialog.
-		this.itemMap.forEach(item => this.updateItem(item, box.x, box.y, box.width, box.height));
+		this.itemMap.forEach(item => this.updateItem(item, box.x, box.y, box.innerWidth, box.innerHeight));
 	}
 
 }

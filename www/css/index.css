@@ -21,3 +21,12 @@ body {
 	background-color: rgba(255, 255, 255, 0.5);
 	opacity: 0.875;
 }
+
+.placeholder {
+	width: 96px;
+}
+
+.demo-content {
+	min-width: 118px;
+	min-height: 38px;
+}
