@@ -77,6 +77,9 @@ export class FloatLayout extends SimpleLayout<FloatLayoutItem> {
 
 		const layoutItem = super.addWidget(dialog);
 
+		dialog.node.style.zIndex = '' + this.zTop;
+		this.activeWidget = dialog;
+
 		const box = ElementExt.boxSizing(dialog.node);
 		const tabBar = (dockPanel.node.querySelector('.p-TabBar') || {}) as HTMLElement;
 
@@ -127,8 +130,11 @@ export class FloatLayout extends SimpleLayout<FloatLayoutItem> {
 		item.update(x, y, width, height);
 	}
 
-	raiseWidget(widget: Widget) {
-		this.parent!.node.appendChild(widget.node);
+	raiseWidget(widget: Widget, event: MouseEvent) {
+		if(widget != this.activeWidget) {
+			widget.node.style.zIndex = '' + (++this.zTop);
+			this.activeWidget = widget;
+		}
 	}
 
 	protected onFitRequest(msg: Message): void {
@@ -137,6 +143,9 @@ export class FloatLayout extends SimpleLayout<FloatLayoutItem> {
 
 		super.onFitRequest(msg);
 	}
+
+	activeWidget: Widget;
+	zTop = 0;
 
 }
 

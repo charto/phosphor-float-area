@@ -84,7 +84,7 @@ export class FloatArea extends Widget {
 			case 'dialog-raise':
 				const raise = msg as DialogRaiseMessage;
 
-				(this.layout as FloatLayout).raiseWidget(raise.widget);
+				(this.layout as FloatLayout).raiseWidget(raise.widget, raise.event);
 				break;
 
 			default:

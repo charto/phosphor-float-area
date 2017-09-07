@@ -45,7 +45,7 @@ export class DialogMoveMessage extends ConflatableMessage {
 
 export class DialogRaiseMessage extends Message {
 
-	constructor(public widget: Dialog) {
+	constructor(public widget: Dialog, public event: MouseEvent) {
 		super('dialog-raise');
 	}
 
@@ -112,7 +112,7 @@ export class Dialog extends Widget {
 	handleClick(event: MouseEvent) {
 		if(event.button != 0) return(false);
 
-		MessageLoop.postMessage(this.parent!, new DialogRaiseMessage(this));
+		MessageLoop.postMessage(this.parent!, new DialogRaiseMessage(this, event));
 
 		return(false);
 	}
