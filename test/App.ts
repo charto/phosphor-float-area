@@ -65,9 +65,13 @@ const dockPanel = new DockPanel({ overlay });
 dockPanel.id = 'main';
 
 const area = new AreaWidget();
+const red = new ContentWidget('Red');
+const yellow = new ContentWidget('Yellow');
+const blue = new ContentWidget('Blue');
 dockPanel.addWidget(area);
-dockPanel.addWidget(new ContentWidget('Red'), { mode: 'split-left', ref: area });
-dockPanel.addWidget(new ContentWidget('Blue'), { mode: 'split-right', ref: area });
+dockPanel.addWidget(red, { mode: 'split-left', ref: area });
+dockPanel.addWidget(yellow, { mode: 'split-bottom', ref: red });
+dockPanel.addWidget(blue, { mode: 'split-right', ref: area });
 
 Widget.attach(dockPanel, document.body);
 

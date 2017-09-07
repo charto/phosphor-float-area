@@ -341,7 +341,7 @@ function sendLeaveEvent(event: IDragEvent, node: HTMLElement) {
 	const leaveEvent = document.createEvent('MouseEvent');
 	const oob = -1000;
 
-	// Claim the mouse entered the document body at faraway coordinates,
+	// Claim that the mouse entered the document body at faraway coordinates,
 	// so any event receivers will consider it outside their bounds.
 
 	leaveEvent.initMouseEvent(
