@@ -6,7 +6,7 @@ import { ElementExt } from '@phosphor/domutils';
 import { IDragEvent } from '@phosphor/dragdrop';
 import { Widget, DockPanel } from '@phosphor/widgets';
 
-import { Dialog, DialogMoveMessage } from './Dialog';
+import { Dialog, DialogMoveMessage, DialogRaiseMessage } from './Dialog';
 import { FloatLayout } from './FloatLayout';
 
 const EDGE_SIZE = 40;
@@ -74,12 +74,21 @@ export class FloatArea extends Widget {
 	}
 
 	processMessage(msg: Message): void {
-		if(msg.type === 'dialog-move') {
-			const move = msg as DialogMoveMessage;
+		switch(msg.type) {
+			case 'dialog-move':
+				const move = msg as DialogMoveMessage;
 
-			(this.layout as FloatLayout).updateWidget(move.widget, move.x, move.y, move.width, move.height);
-		} else {
-			super.processMessage(msg);
+				(this.layout as FloatLayout).updateWidget(move.widget, move.x, move.y, move.width, move.height);
+				break;
+
+			case 'dialog-raise':
+				const raise = msg as DialogRaiseMessage;
+
+				(this.layout as FloatLayout).raiseWidget(raise.widget);
+				break;
+
+			default:
+				super.processMessage(msg);
 		}
 	}
 

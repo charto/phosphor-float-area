@@ -43,6 +43,14 @@ export class DialogMoveMessage extends ConflatableMessage {
 
 }
 
+export class DialogRaiseMessage extends Message {
+
+	constructor(public widget: Dialog) {
+		super('dialog-raise');
+	}
+
+}
+
 export class Dialog extends Widget {
 
 	constructor(options: Dialog.Options = {}) {
@@ -71,16 +79,21 @@ export class Dialog extends Widget {
 	}
 
 	protected onBeforeAttach(msg: Message) {
+		this.node.addEventListener('click', this);
 		this.node.addEventListener('mousedown', this);
 	}
 
 	protected onAfterDetach(msg: Message) {
+		this.node.removeEventListener('click', this);
 		this.node.removeEventListener('mousedown', this);
 	}
 
 	handleEvent(event: Event) {
 		const mouseEvent = event as MouseEvent;
 		switch(event.type) {
+			case 'click':
+				if(this.handleClick(mouseEvent)) break;
+				return;
 			case 'mousedown':
 				if(this.handleMouseDown(mouseEvent)) break;
 				return;
@@ -94,6 +107,14 @@ export class Dialog extends Widget {
 
 		event.preventDefault();
 		event.stopPropagation();
+	}
+
+	handleClick(event: MouseEvent) {
+		if(event.button != 0) return(false);
+
+		MessageLoop.postMessage(this.parent!, new DialogRaiseMessage(this));
+
+		return(false);
 	}
 
 	handleMouseDown(event: MouseEvent) {

@@ -104,6 +104,10 @@ export class FloatLayout extends SimpleLayout<FloatLayoutItem> {
 		item.update(x, y, width, height);
 	}
 
+	raiseWidget(widget: Widget) {
+		this.parent!.node.appendChild(widget.node);
+	}
+
 	protected onFitRequest(msg: Message): void {
 		// TODO: Calculate required size to fit children.
 		// See DockLayout._fit
