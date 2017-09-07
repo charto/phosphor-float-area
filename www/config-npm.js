@@ -57,12 +57,15 @@ System.config({
 		"@phosphor/disposable": "node_modules/@phosphor/disposable",
 		"@phosphor/domutils": "node_modules/@phosphor/domutils",
 		"@phosphor/dragdrop": "node_modules/@phosphor/dragdrop",
+		"@phosphor/dragdrop/style/index.css": "node_modules/@phosphor/dragdrop/style/index.css",
 		"@phosphor/keyboard": "node_modules/@phosphor/keyboard",
 		"@phosphor/messaging": "node_modules/@phosphor/messaging",
 		"@phosphor/properties": "node_modules/@phosphor/properties",
 		"@phosphor/signaling": "node_modules/@phosphor/signaling",
 		"@phosphor/virtualdom": "node_modules/@phosphor/virtualdom",
-		"@phosphor/widgets": "node_modules/@phosphor/widgets"
+		"@phosphor/widgets": "node_modules/@phosphor/widgets",
+		"@phosphor/widgets/style/index.css": "node_modules/@phosphor/widgets/style/index.css",
+		"font-awesome/css/font-awesome.min.css": "node_modules/font-awesome/css/font-awesome.min.css"
 	},
 	meta: {
 		"node_modules/*": { globals: { process: "bundler/node_modules/cbuild/process-dev.js" } }

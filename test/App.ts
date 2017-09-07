@@ -1,5 +1,6 @@
 import '@phosphor/dragdrop/style/index.css!';
 import '@phosphor/widgets/style/index.css!';
+import 'font-awesome/css/font-awesome.min.css!';
 import '../style/index.css!';
 import '../www/css/content.css!';
 import '../www/css/phosphor/index.css!';
@@ -52,7 +53,7 @@ class ContentWidget extends Widget {
 		this.addClass(name.toLowerCase());
 
 		this.title.label = name;
-		this.title.closable = false;
+		this.title.closable = true;
 		this.title.caption = 'Description of ' + name;
 	}
 
