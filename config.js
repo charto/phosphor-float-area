@@ -1,9 +1,12 @@
 System.config({
-	transpiler: false,
-
 	map: {
 		crypto: '@empty',
-		css: 'node_modules/systemjs-plugin-css/css.js'
+		css: 'www/js/css.js'
+	},
+
+
+	paths: {
+		'node_modules/': 'www/modules/',
 	},
 
 	meta: {
