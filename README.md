@@ -8,7 +8,9 @@ Widgets are also draggable between dialogs and dockable back to a containing `Do
 Demo
 ----
 
-Run the following commands and then open [localhost:8080](http://localhost:8080/) to see it in action:
+[See it online!](https://charto.github.io/phosphor-float-area/)
+
+Alternatively, run the following commands and then open [localhost:8080](http://localhost:8080/) to see it in action:
 
 ```
 git clone https://github.com/charto/phosphor-float-area.git
