@@ -1,3 +1,6 @@
 {
-	"buildCSS": false
+	"minify": true,
+	"config": {
+		"buildCSS": false
+	}
 }

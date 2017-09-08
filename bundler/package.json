@@ -5,6 +5,6 @@
     "bundle": "cbuild -d -v -p .. -b builder.json -s ../test/App.js -o ../dist/bundle.js -C ../www/config-npm.js"
   },
   "devDependencies": {
-    "cbuild": "~0.1.4"
+    "cbuild": "~0.1.5"
   }
 }
