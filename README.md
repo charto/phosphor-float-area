@@ -1,16 +1,17 @@
 phosphor-float-area
 ===================
 
+Draggable, dockable, resizable, floating, tabbed `Dialog` and `FloatArea` widgets:
+
 ![Screen recording](https://raw.githubusercontent.com/charto/phosphor-float-area/gh-pages/demo.gif)
 
-A `FloatArea` widget based on [PhosphorJS](https://github.com/phosphorjs/phosphor).
-Widgets dropped over it become resizable, floating MDI-style dialogs.
-Widgets are also draggable between dialogs and dockable back to a containing `DockPanel` if available.
+100% Virtual DOM, TypeScript, [PhosphorJS](https://github.com/phosphorjs/phosphor)
+based modern JavaScript goodness :cake:
 
-Demo
-----
+Live demo
+---------
 
-[See it online!](https://charto.github.io/phosphor-float-area/)
+[**Try it now!**](https://charto.github.io/phosphor-float-area/)
 
 Alternatively, run the following commands and then open [localhost:8080](http://localhost:8080/) to see it in action:
 
@@ -22,11 +23,32 @@ npm run prepublish
 npm start
 ```
 
-The demo uses [SystemJS](https://github.com/systemjs/systemjs), not webpack.
-That allows this repository to work directly from the public directory of any HTTP server.
-With `compileOnSave` (enabled in [`atom-typescript`](https://atom.io/packages/atom-typescript) or
+The demo uses [SystemJS](https://github.com/systemjs/systemjs).
+Works directly from the public directory of any HTTP server.
+With `compileOnSave` (eg. [`atom-typescript`](https://atom.io/packages/atom-typescript) or
 [TypeScript for VS Code](https://github.com/mrcrowl/vscode/releases/tag/13.10.8))
-the demo in a browser always stays up to date with the latest TypeScript source.
+the demo page always stays up to date while editing TypeScript source code.
+
+Usage
+-----
+
+```TypeScript
+import '@phosphor/dragdrop/style/index.css!';
+import '@phosphor/widgets/style/index.css!';
+import 'phosphor-float-area/style/index.css!';
+
+import { Widget, DockPanel } from '@phosphor/widgets';
+import { FloatArea } from 'phosphor-float-area';
+
+const area = new FloatArea();
+const dock = new DockPanel();
+
+dock.addWidget(area);
+dock.addWidget(new Widget(), { mode: 'split-left', ref: area });
+dock.addWidget(new Widget(), { mode: 'split-right', ref: area });
+
+Widget.attach(dock, document.body);
+```
 
 Project structure
 -----------------
