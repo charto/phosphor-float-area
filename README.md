@@ -1,7 +1,9 @@
 phosphor-float-area
 ===================
 
-A `FloatArea` widget for [PhosphorJS](https://github.com/phosphorjs/phosphor).
+![Screen recording](https://raw.githubusercontent.com/charto/phosphor-float-area/gh-pages/demo.gif)
+
+A `FloatArea` widget based on [PhosphorJS](https://github.com/phosphorjs/phosphor).
 Widgets dropped over it become resizable, floating MDI-style dialogs.
 Widgets are also draggable between dialogs and dockable back to a containing `DockPanel` if available.
 
