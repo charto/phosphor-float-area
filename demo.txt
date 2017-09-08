@@ -1,0 +1,1 @@
+ffmpeg -i demo.mov -vf crop=634:370:0:69,scale=422:-1 -r 4 -f image2pipe -vcodec ppm - | convert -layers Optimize -coalesce - gif:- | gifsicle --loop --delay=12 --optimize=3 --multifile - > demo.gif
