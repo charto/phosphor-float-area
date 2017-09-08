@@ -4,51 +4,27 @@
 import { Message, MessageLoop, ConflatableMessage } from '@phosphor/messaging';
 import { Widget, LayoutItem } from '@phosphor/widgets';
 
+import { DialogUpdateMessage, DialogRaiseMessage } from './DialogMessage';
 import { DialogLayout } from './DialogLayout';
 
+/** Size and position information for drag events to handle move and resize. */
+
 interface DragData {
-	moveX: number;
-	moveY: number;
-	resizeX: number;
-	resizeY: number;
-	x1: number;
-	y1: number;
-	w1: number;
-	h1: number;
-}
+	/** Flag whether drag causes horizontal movement. */
+	moveX: 0 | 1;
+	/** Flag whether drag causes vertical movement. */
+	moveY: 0 | 1;
+	/** Correlation between horizontal change in mouse position and dialog size. */
+	resizeX: 0 | 1 | -1;
+	/** Correlation between vertical change in mouse position and dialog size. */
+	resizeY: 0 | 1 | -1;
 
-export class DialogMoveMessage extends ConflatableMessage {
-
-	constructor(
-		public widget: Dialog,
-		public x: number,
-		public y: number,
-		public width: number,
-		public height: number
-	) {
-		super('dialog-move');
-	}
-
-	conflate(other: DialogMoveMessage) {
-		if(this.widget != other.widget) return(false);
-
-		this.x = other.x;
-		this.y = other.y;
-		this.width = other.width;
-		this.height = other.height;
-
-		console.log(this.x + ' ' + other.x);
-		return(true);
-	}
-
-}
-
-export class DialogRaiseMessage extends Message {
-
-	constructor(public widget: Dialog, public event: MouseEvent) {
-		super('dialog-raise');
-	}
-
+	/** Horizontal offset from mouse to dialog position. */
+	offsetX: number;
+	/** Vertical offset from mouse to dialog position. */
+	offsetY: number;
+	startWidth: number;
+	startHeight: number;
 }
 
 export class Dialog extends Widget {
@@ -120,17 +96,17 @@ export class Dialog extends Widget {
 	handleMouseDown(event: MouseEvent) {
 		if(event.button != 0) return(false);
 
-		let moveX = 0;
-		let moveY = 0;
-		let resizeX = 0;
-		let resizeY = 0;
+		let moveX: 0 | 1 = 0;
+		let moveY: 0 | 1 = 0;
+		let resizeX: 0 | 1 | -1 = 0;
+		let resizeY: 0 | 1 | -1 = 0;
 		const target = event.target as Element;
 
 		if(target.parentNode == this.node) {
 			const match = target.className.match(/charto-Dialog-resize-([ns]?)([ew]?)( |$)/);
 			if(!match) return(false);
 
-			// Resizing the dialog.
+			// Vertical resize.
 			if(match[1]) {
 				if(match[1] == 'n') {
 					moveY = 1;
@@ -138,6 +114,7 @@ export class Dialog extends Widget {
 				} else resizeY = 1;
 			}
 
+			// Horizontal resize.
 			if(match[2]) {
 				if(match[2] == 'w') {
 					moveX = 1;
@@ -148,7 +125,7 @@ export class Dialog extends Widget {
 			target.className == 'p-TabBar-content' &&
 			target.parentNode!.parentNode!.parentNode == this.node
 		) {
-			// Moving the dialog.
+			// Move the dialog.
 			moveX = 1;
 			moveY = 1;
 		} else return(false);
@@ -163,10 +140,10 @@ export class Dialog extends Widget {
 
 		this.drag = {
 			moveX, moveY, resizeX, resizeY,
-			x1: node.offsetLeft - event.clientX * moveX,
-			y1: node.offsetTop - event.clientY * moveY,
-			w1: node.offsetWidth - event.clientX * resizeX,
-			h1: node.offsetHeight - event.clientY * resizeY
+			offsetX: node.offsetLeft - event.clientX * moveX,
+			offsetY: node.offsetTop - event.clientY * moveY,
+			startWidth: node.offsetWidth - event.clientX * resizeX,
+			startHeight: node.offsetHeight - event.clientY * resizeY
 		};
 
 		return(true);
@@ -176,12 +153,13 @@ export class Dialog extends Widget {
 		const drag = this.drag;
 		if(!drag) return;
 
-		MessageLoop.postMessage(this.parent!, new DialogMoveMessage(
+		MessageLoop.postMessage(this.parent!, new DialogUpdateMessage(
 			this,
-			drag.x1 + event.clientX * drag.moveX,
-			drag.y1 + event.clientY * drag.moveY,
-			drag.w1 + event.clientX * drag.resizeX,
-			drag.h1 + event.clientY * drag.resizeY
+			drag.offsetX + event.clientX * drag.moveX,
+			drag.offsetY + event.clientY * drag.moveY,
+			drag.startWidth + event.clientX * drag.resizeX,
+			drag.startHeight + event.clientY * drag.resizeY,
+			event
 		));
 	}
 

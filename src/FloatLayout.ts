@@ -133,7 +133,7 @@ export class FloatLayout extends SimpleLayout<FloatLayoutItem> {
 		item.update(x, y, width, height);
 	}
 
-	raiseWidget(widget: Widget, event: MouseEvent) {
+	raiseWidget(widget: Widget, event?: MouseEvent) {
 		if(widget != this.activeWidget) {
 			widget.node.style.zIndex = '' + (++this.zTop);
 			this.activeWidget = widget;
