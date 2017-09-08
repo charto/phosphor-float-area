@@ -1,7 +1,11 @@
 node_modules/
+bundler/
 test/
+www/
 src/
 package-lock.json
+config.js
+index.html
 .travis.yml
 *.log.*
 *.log
