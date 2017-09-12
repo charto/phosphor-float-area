@@ -32,6 +32,14 @@ the demo page always stays up to date while editing TypeScript source code.
 Usage
 -----
 
+1. Install:
+
+```bash
+npm install --save phosphor-float-area
+```
+
+2. Use:
+
 ```TypeScript
 import '@phosphor/dragdrop/style/index.css!';
 import '@phosphor/widgets/style/index.css!';
