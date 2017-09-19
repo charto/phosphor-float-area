@@ -28,10 +28,16 @@ interface DragData {
 }
 
 export class FloatArea extends Widget {
+
 	constructor(options: FloatArea.Options = {}) {
 		super({ node: FloatArea.createNode() });
 
 		this.addClass('charto-FloatArea');
+
+		this.backdropNode = document.createElement('div');
+		this.backdropNode.className = 'charto-FloatArea-content';
+
+		this.node.appendChild(this.backdropNode);
 
 		if(options.overlay) {
 			// Re-use an existing transparent overlay.
@@ -328,8 +334,14 @@ export class FloatArea extends Widget {
 	}
 
 	addWidget(widget: Widget, options: FloatLayout.AddOptions = {}): void {
-		(this.layout as FloatLayout).addWidget(widget, options);
+		let targetNode: HTMLElement | undefined;
+
+		if(options.placement == 'backdrop') targetNode = this.backdropNode;
+
+		(this.layout as FloatLayout).addWidget(widget, options, targetNode);
 	}
+
+	backdropNode: HTMLElement;
 
 	/** Transparent overlay indicating position of dragged widget if dropped. */
 	overlay: DockPanel.IOverlay;

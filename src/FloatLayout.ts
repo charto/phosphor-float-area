@@ -7,7 +7,7 @@ import { ElementExt } from '@phosphor/domutils';
 import { Widget, LayoutItem, DockPanel, TabBar } from '@phosphor/widgets';
 
 import { Dialog } from './Dialog';
-import { SimpleLayout } from './SimpleLayout';
+import { SimpleLayout, SimpleItem } from './SimpleLayout';
 
 export class FloatLayoutItem extends LayoutItem {
 
@@ -25,13 +25,17 @@ export class FloatLayoutItem extends LayoutItem {
 
 }
 
-export class FloatLayout extends SimpleLayout<FloatLayoutItem> {
+export class FloatLayout extends SimpleLayout<FloatLayoutItem | SimpleItem> {
 
 	constructor(options: FloatLayout.Options = {}) {
 		super(FloatLayoutItem);
 	}
 
-	addWidget(widget: Widget, options: FloatLayout.AddOptions = {}) {
+	addWidget(widget: Widget, options: FloatLayout.AddOptions = {}, targetNode?: HTMLElement) {
+		if(targetNode) {
+			return(super.addItem(new SimpleItem(widget, targetNode)));
+		}
+
 		const dialog = new Dialog();
 		const dockPanel = new DockPanel();
 
@@ -83,7 +87,7 @@ export class FloatLayout extends SimpleLayout<FloatLayoutItem> {
 		const box = ElementExt.boxSizing(dialog.node);
 		const tabBar = (dockPanel.node.querySelector('.p-TabBar') || {}) as HTMLElement;
 
-		if(layoutItem) {
+		if(layoutItem instanceof FloatLayoutItem) {
 			this.updateItem(
 				layoutItem,
 				(options.left || 0) - box.paddingLeft - box.borderLeft,
@@ -104,13 +108,16 @@ export class FloatLayout extends SimpleLayout<FloatLayoutItem> {
 		const box = this.box;
 
 		// Resize content to match the dialog.
-		this.itemMap.forEach(item => this.updateItem(item, item.userX, item.userY, item.userWidth, item.userHeight));
+		this.itemMap.forEach(item =>
+			item instanceof FloatLayoutItem &&
+			this.updateItem(item, item.userX, item.userY, item.userWidth, item.userHeight)
+		);
 	}
 
 	updateWidget(widget: Widget, x: number, y: number, width: number, height: number) {
 		const item = this.itemMap.get(widget);
 
-		if(item) this.updateItem(item, x, y, width, height);
+		if(item instanceof FloatLayoutItem) this.updateItem(item, x, y, width, height);
 	}
 
 	updateItem(item: FloatLayoutItem, x: number, y: number, width: number, height: number) {
@@ -176,7 +183,10 @@ export namespace FloatLayout {
 	export interface Options {
 	}
 
+	export type Placement = 'backdrop' | 'float';
+
 	export interface AddOptions {
+		placement?: Placement;
 		left?: number;
 		top?: number;
 		width?: number;

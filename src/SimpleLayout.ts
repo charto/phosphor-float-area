@@ -6,9 +6,51 @@ import { IIterator, iter } from '@phosphor/algorithm';
 import { ElementExt } from '@phosphor/domutils';
 import { Widget, Layout, LayoutItem } from '@phosphor/widgets';
 
-export class SimpleLayout<Item extends LayoutItem = LayoutItem> extends Layout {
+export interface GenericItem {
+	dispose(): void;
+	fit(): void;
+	update(x: number, y: number, width: number, height: number): void;
 
-	constructor(protected Item = LayoutItem as { new(widget: Widget): Item }) {
+	widget: Widget;
+	parentNode?: HTMLElement;
+
+	minWidth: number;
+	maxWidth: number;
+	minHeight: number;
+	maxHeight: number;
+}
+
+export class SimpleItem {
+
+	constructor(public widget: Widget, public parentNode?: HTMLElement) {}
+
+	dispose() {}
+
+	fit() {
+		const limits = ElementExt.sizeLimits(this.widget.node);
+
+		this.minWidth = limits.minWidth;
+		this.maxWidth = limits.maxWidth;
+		this.minHeight = limits.minHeight;
+		this.maxHeight = limits.maxHeight;
+	}
+
+	update() {}
+
+	minWidth: number;
+	maxWidth: number;
+	minHeight: number;
+	maxHeight: number;
+
+}
+
+export class SimpleLayout<Item extends GenericItem = LayoutItem> extends Layout {
+
+	constructor(
+		protected Item = (
+			LayoutItem as { new(widget: Widget): GenericItem }
+		) as { new(widget: Widget): Item }
+	) {
 		super();
 	}
 
@@ -16,11 +58,22 @@ export class SimpleLayout<Item extends LayoutItem = LayoutItem> extends Layout {
 		return iter(this.widgetList);
 	}
 
+	init() {
+		super.init();
+
+		if(this.parent) {
+			for(let widget of this.widgetList) this.attachWidget(widget);
+
+			this.parent.fit();
+		}
+	}
+
 	dispose() {
 		this.itemMap.forEach(item => item.dispose());
 		this.itemMap.clear();
 
 		for(let widget of this.widgetList) widget.dispose();
+
 		super.dispose();
 	}
 
@@ -28,8 +81,15 @@ export class SimpleLayout<Item extends LayoutItem = LayoutItem> extends Layout {
 		this.afterUpdateList.push(handler);
 	}
 
+	addItem(item: Item) {
+		this.itemMap.set(item.widget, item);
+
+		return(SimpleLayout.prototype.addWidget.call(this, item.widget));
+	}
+
 	addWidget(widget: Widget) {
 		let item: Item | undefined;
+
 		this.widgetList.push(widget);
 
 		if(this.parent) {
@@ -50,34 +110,40 @@ export class SimpleLayout<Item extends LayoutItem = LayoutItem> extends Layout {
 	}
 
 	protected attachWidget(widget: Widget) {
-		if (this.parent!.node == widget.node.parentNode) return;
+		let item = this.itemMap.get(widget);
+		const parentNode = (item && item.parentNode) || this.parent!.node;
+
+		if(widget.node.parentNode == parentNode) return(item);
 
 		const parentAttached = this.parent!.isAttached;
 
 		if(parentAttached) MessageLoop.sendMessage(widget, Widget.Msg.BeforeAttach);
 
-		this.parent!.node.appendChild(widget.node);
+		parentNode.appendChild(widget.node);
 
 		if(parentAttached) MessageLoop.sendMessage(widget, Widget.Msg.AfterAttach);
 
-		const item = new this.Item(widget);
-		this.itemMap.set(widget, item);
+		if(!item) {
+			item = new this.Item(widget);
+			this.itemMap.set(widget, item);
+		}
 
 		return(item);
 	}
 
 	protected detachWidget(widget: Widget) {
-		if (this.parent!.node != widget.node.parentNode) return;
+		const item = this.itemMap.get(widget);
+		const parentNode = (item && item.parentNode) || this.parent!.node;
+
+		if(widget.node.parentNode != parentNode) return;
 
 		const parentAttached = this.parent!.isAttached;
 
 		if(parentAttached) MessageLoop.sendMessage(widget, Widget.Msg.BeforeDetach);
 
-		this.parent!.node.removeChild(widget.node);
+		parentNode.removeChild(widget.node);
 
 		if(parentAttached) MessageLoop.sendMessage(widget, Widget.Msg.AfterDetach);
-
-		const item = this.itemMap.get(widget);
 
 		if(item) {
 			this.itemMap.delete(widget);
@@ -98,7 +164,7 @@ export class SimpleLayout<Item extends LayoutItem = LayoutItem> extends Layout {
 		let maxWidth = Infinity;
 		let maxHeight = Infinity;
 
-		this.itemMap.forEach(item => {
+		this.itemMap.forEach((item: Item) => {
 			item.fit();
 			minWidth = Math.max(minWidth, item.minWidth);
 			minHeight = Math.max(minHeight, item.minHeight);
