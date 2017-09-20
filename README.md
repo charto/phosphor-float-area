@@ -8,6 +8,9 @@ Draggable, dockable, resizable, floating, tabbed `Dialog` and `FloatArea` widget
 100% Virtual DOM, TypeScript, [PhosphorJS](https://github.com/phosphorjs/phosphor)
 based modern JavaScript goodness :cake:
 
+[![dependency status](https://david-dm.org/charto/phosphor-float-area.svg)](https://david-dm.org/charto/phosphor-float-area)
+[![npm version](https://img.shields.io/npm/v/phosphor-float-area.svg)](https://www.npmjs.com/package/phosphor-float-area)
+
 Live demo
 ---------
 

@@ -5,8 +5,7 @@ import '../style/index.css!';
 import '../www/css/content.css!';
 import '../www/css/phosphor/index.css!';
 
-import { Widget, DockPanel, TabBar } from '@phosphor/widgets';
-import { IDragEvent } from '@phosphor/dragdrop';
+import { Widget, DockPanel } from '@phosphor/widgets';
 import { FloatArea } from '../dist/index';
 
 class AreaWidget extends FloatArea {
