@@ -7,7 +7,7 @@ import { ElementExt } from '@phosphor/domutils';
 import { Widget, LayoutItem, DockPanel, TabBar } from '@phosphor/widgets';
 
 import { Dialog } from './Dialog';
-import { SimpleLayout, SimpleItem } from './SimpleLayout';
+import { SimpleLayout, SimpleItem, SimpleBox } from './SimpleLayout';
 
 export class FloatLayoutItem extends LayoutItem {
 
@@ -16,6 +16,27 @@ export class FloatLayoutItem extends LayoutItem {
 		this.userY = y;
 		this.userWidth = width;
 		this.userHeight = height;
+	}
+
+	updateClip(box: SimpleBox) {
+		let x = this.userX;
+		let y = this.userY;
+		let width = this.userWidth;
+		let height = this.userHeight;
+
+		if(x < box.x) x = box.x;
+		if(y < box.y) y = box.y;
+
+		width = Math.max(Math.min(width, this.maxWidth || Infinity), this.minWidth);
+		height = Math.max(Math.min(height, this.maxHeight || Infinity), this.minHeight);
+
+		if(width > box.innerWidth) width = box.innerWidth;
+		if(height > box.innerHeight) height = box.innerHeight;
+
+		if(x - box.x + width > box.innerWidth) x = box.x + box.innerWidth - width;
+		if(y - box.y + height > box.innerHeight) y = box.y + box.innerHeight - height;
+
+		this.update(x, y, width, height);
 	}
 
 	userY: number;
@@ -88,13 +109,14 @@ export class FloatLayout extends SimpleLayout<FloatLayoutItem | SimpleItem> {
 		const tabBar = (dockPanel.node.querySelector('.p-TabBar') || {}) as HTMLElement;
 
 		if(layoutItem instanceof FloatLayoutItem) {
-			this.updateItem(
-				layoutItem,
+			layoutItem.updateUser(
 				(options.left || 0) - box.paddingLeft - box.borderLeft,
 				(options.top || 0) - box.paddingTop - box.borderTop,
 				(options.width || 320) + box.horizontalSum,
 				(options.height || 240) + box.verticalSum + (tabBar.offsetHeight || 0)
 			);
+
+			layoutItem.updateClip(this.box);
 		}
 
 		return(layoutItem);
@@ -109,35 +131,19 @@ export class FloatLayout extends SimpleLayout<FloatLayoutItem | SimpleItem> {
 
 		// Resize content to match the dialog.
 		this.itemMap.forEach(item =>
-			item instanceof FloatLayoutItem &&
-			this.updateItem(item, item.userX, item.userY, item.userWidth, item.userHeight)
+			item instanceof FloatLayoutItem ?
+			item.updateClip(box) :
+			item.update()
 		);
 	}
 
 	updateWidget(widget: Widget, x: number, y: number, width: number, height: number) {
 		const item = this.itemMap.get(widget);
 
-		if(item instanceof FloatLayoutItem) this.updateItem(item, x, y, width, height);
-	}
-
-	updateItem(item: FloatLayoutItem, x: number, y: number, width: number, height: number) {
-		const box = this.box;
-
-		item.updateUser(x, y, width, height);
-
-		if(x < box.x) x = box.x;
-		if(y < box.y) y = box.y;
-
-		width = Math.max(Math.min(width, item.maxWidth || Infinity), item.minWidth);
-		height = Math.max(Math.min(height, item.maxHeight || Infinity), item.minHeight);
-
-		if(width > box.innerWidth) width = box.innerWidth;
-		if(height > box.innerHeight) height = box.innerHeight;
-
-		if(x - box.x + width > box.innerWidth) x = box.x + box.innerWidth - width;
-		if(y - box.y + height > box.innerHeight) y = box.y + box.innerHeight - height;
-
-		item.update(x, y, width, height);
+		if(item instanceof FloatLayoutItem) {
+			item.updateUser(x, y, width, height);
+			item.updateClip(this.box);
+		}
 	}
 
 	raiseWidget(widget: Widget, event?: MouseEvent) {

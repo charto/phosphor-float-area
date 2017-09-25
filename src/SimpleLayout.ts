@@ -20,6 +20,15 @@ export interface GenericItem {
 	maxHeight: number;
 }
 
+export interface SimpleBox {
+	x: number;
+	y: number;
+	innerWidth: number;
+	innerHeight: number;
+	outerWidth: number;
+	outerHeight: number;
+}
+
 export class SimpleItem {
 
 	constructor(public widget: Widget, public parentNode?: HTMLElement) {}
@@ -35,7 +44,9 @@ export class SimpleItem {
 		this.maxHeight = limits.maxHeight;
 	}
 
-	update() {}
+	update() {
+		this.widget.update();
+	}
 
 	minWidth: number;
 	maxWidth: number;
@@ -238,7 +249,7 @@ export class SimpleLayout<Item extends GenericItem = LayoutItem> extends Layout 
 		item.update(x, y, width, height);
 	}
 
-	protected box = { x: 0, y: 0, innerWidth: 0, innerHeight: 0, outerWidth: 0, outerHeight: 0 };
+	protected box: SimpleBox = { x: 0, y: 0, innerWidth: 0, innerHeight: 0, outerWidth: 0, outerHeight: 0 };
 
 	protected widgetList: Widget[] = [];
 	protected itemMap = new Map<Widget, Item>();
