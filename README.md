@@ -58,13 +58,15 @@ dock.addWidget(area);
 dock.addWidget(new Widget(), { mode: 'split-left', ref: area });
 dock.addWidget(new Widget(), { mode: 'split-right', ref: area });
 
+area.addWidget(new Widget(), { placement: 'backdrop' });
+
 Widget.attach(dock, document.body);
 ```
 
 The `addWidget` method of `FloatArea` accepts an options object as the second argument,
 with the following optional members:
 
-- `placement`: string, `"float"` by default. Passing `"main"` adds the widget as a non-floating backdrop,
+- `placement`: string, `float` by default. Passing `backdrop` adds the widget as a non-floating backdrop,
   behind any floating dialogs.
 - `left`, `top`, `width`, `height`: number. Initial pixel size and placement of the floating dialog to add.
 
