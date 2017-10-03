@@ -133,7 +133,7 @@ export class FloatLayout extends SimpleLayout<FloatLayoutItem | SimpleItem> {
 		this.itemMap.forEach(item =>
 			item instanceof FloatLayoutItem ?
 			item.updateClip(box) :
-			item.update()
+			item.update(box.x, box.y, box.innerWidth, box.innerHeight)
 		);
 	}
 

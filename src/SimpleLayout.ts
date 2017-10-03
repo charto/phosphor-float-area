@@ -9,7 +9,7 @@ import { Widget, Layout, LayoutItem } from '@phosphor/widgets';
 export interface GenericItem {
 	dispose(): void;
 	fit(): void;
-	update(x: number, y: number, width: number, height: number): void;
+	update(x?: number, y?: number, width?: number, height?: number): void;
 
 	widget: Widget;
 	parentNode?: HTMLElement;
@@ -29,7 +29,7 @@ export interface SimpleBox {
 	outerHeight: number;
 }
 
-export class SimpleItem {
+export class SimpleItem implements GenericItem {
 
 	constructor(public widget: Widget, public parentNode?: HTMLElement) {}
 
@@ -44,10 +44,17 @@ export class SimpleItem {
 		this.maxHeight = limits.maxHeight;
 	}
 
-	update() {
-		this.widget.update();
+	update(x?: number, y?: number, width?: number, height?: number) {
+		if(width && height && (width != this.width || height != this.height)) {
+			this.width = width;
+			this.height = height;
+
+			MessageLoop.sendMessage(this.widget, new Widget.ResizeMessage(width, height));
+		}
 	}
 
+	width: number;
+	height: number;
 	minWidth: number;
 	maxWidth: number;
 	minHeight: number;
