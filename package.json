@@ -1,6 +1,6 @@
 {
   "name": "phosphor-float-area",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Floating dialog container with DockPanel drag support for PhosphorJS",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -31,7 +31,7 @@
     "font-awesome": "^4.7.0",
     "systemjs": "^0.20.19",
     "systemjs-plugin-css": "^0.1.36",
-    "typescript": "^2.5.2"
+    "typescript": "^2.6.1"
   },
   "dependencies": {
     "@phosphor/messaging": "^1.2.2",
